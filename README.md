@@ -3,7 +3,7 @@ This is a readme for Indigo repository!
 
 Currently working on better README with code blocks showing how to use code!
 
-Main file to run INDIGO is called indigo.m. This script executes the following functions:
+Main file to run INDIGO is called indigo.m (in indigoCode). This script executes the following functions:
 
 1. [summary,druglist] = dataExplore(testFile)
 
@@ -27,4 +27,6 @@ Main part of the process. Takes in the following:
 
 Takes output from INDIGO and analyzes results. Determines rank correlation, accuracy, etc. Plots ROC curves, confusion matrices and scatter plots of results (rank sorted).
 
+All data files should be in indigoData
 
+All results from analyze are saved and stored in indigoResults
