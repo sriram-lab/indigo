@@ -1,5 +1,5 @@
 # indigo
-This is a readme for Indigo repository!
+This is a readme for indigo repository!
 
 Currently working on better README with code blocks showing how to use code!
 
