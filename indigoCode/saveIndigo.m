@@ -1,6 +1,7 @@
 function resultsFile = saveIndigo(indigoSummary)
 %save results
 dataName = erase(indigoSummary.testFile,'.xlsx');
+indigoSummary.trainingData = erase(indigoSummary.trainingData,'.xlsx');
 
 if indigoSummary.standardized == 1
     resultsFile = strcat('indigoResults/',dataName,sprintf('_%s_%s_z.mat', ...

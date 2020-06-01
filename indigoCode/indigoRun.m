@@ -1,10 +1,11 @@
-function indigoSummary = indigoRun(testFile,valMethod,K,orthology,trainingData,standardize,input_type)
+function indigoSummary = indigoRun(testFile,valMethod,K,orthology,trainingData,trainingOrthology, standardize,input_type)
 arguments
     testFile char
     valMethod char {mustBeMember(valMethod,{'holdout_onself', 'cv_onself', 'independent', 'cv'})} = 'holdout_onself'
     K {mustBeInteger} = 5
     orthology char = ''
-    trainingData char {mustBeMember(trainingData,{'','indigo','nature'})} = ''
+    trainingData char = ''
+    trainingOrthology char = ''
     standardize char {mustBeMember(standardize,{'','standardized'})}= ''
     input_type {mustBeInteger} = 2;
 end
@@ -47,7 +48,8 @@ end
 %store data from testFile
 [scores,interactions] = xlsread(testFile,sheet);
 
-%initial training if indigo or nature is specified
+%setting up training data
+%can specify a file, indigo or nature
 if ~isempty(trainingData)
     indigoSummary.trainingData = trainingData;
     sigma_delta_scores_all = [];
@@ -82,7 +84,42 @@ if ~isempty(trainingData)
              sigma_delta_scores_all = [sigma_delta_scores_all, sigma_delta_scores];
              
          end
-    end
+         
+    elseif strcmp(trainingData,'nature_ecoli')
+        for i = 1:length(trainFiles.natureEcoli)
+            [train_interactions, train_scores, labels, indigo_model,...
+             sigma_delta_scores, conditions] = indigo_train(trainFiles.natureData{i},sheet, ...
+             'identifiers_match_tb.xlsx','ecoli_phenotype_data_cell.xlsx');
+         
+            if strcmp(trainFiles.natureEcoli{i},'ecoli_iAi1.xlsx')
+                %use orthology
+                [~,~,~,sigma_delta_input] = indigo_predict(indigo_model,train_interactions, ...
+                2,'identifiers_match_tb.xlsx','ecoli_phenotype_data_cell.xlsx');
+
+             [~,sigma_delta_scores] = indigo_orthology(labels, ...
+             trainFiles.natureOrthologs{1},sigma_delta_input, indigo_model); 
+            end
+            interaction_scores_all = train_scores;
+            sigma_delta_scores_all = sigma_delta_scores;
+        end
+    else
+        %if not indigo or entire set of nature data and only 1 file
+        [train_interactions, train_scores, labels, indigo_model,...
+         sigma_delta_scores, conditions] = indigo_train(trainingData,sheet, ...
+         'identifiers_match_tb.xlsx','ecoli_phenotype_data_cell.xlsx');
+         
+         if ~isempty(trainingOrthology)
+             [~,training_orth] = xlsread(trainingOrthology);  
+             indigoSummary.trainingOrthology = trainingOrthology;
+             [~,~,~,sigma_delta_input] = indigo_predict(indigo_model,train_interactions, ...
+             2,'identifiers_match_tb.xlsx','ecoli_phenotype_data_cell.xlsx');
+             [~,sigma_delta_scores] = indigo_orthology(labels, ...
+             training_orth,sigma_delta_input, indigo_model);
+         end
+         interaction_scores_all = train_scores;
+         sigma_delta_scores_all = sigma_delta_scores;
+         
+    end  
 end
 
 %Check to see if orthology applies (data is not ecoli)
@@ -148,7 +185,7 @@ for i = 1:K
              2,'identifiers_match_tb.xlsx','ecoli_phenotype_data_cell.xlsx');
 
         if ~isempty(orthology)
-            [~,sigma_delta_scores] = indigo_orthology(labels, orthologs(i-1), ...
+            [~,sigma_delta_scores] = indigo_orthology(labels, ecoli_orth, ...
                                      sigma_delta_input, indigo_model); 
         else
             sigma_delta_scores = sigma_delta_input;     %testFile contains ecoli data

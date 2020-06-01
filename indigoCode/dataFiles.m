@@ -21,6 +21,9 @@ F.natureOrthologs = {'ecoli_iAi1_orthologs.xlsx'
                     'ecoli_pao1_orthologs.xlsx'
                     'ecoli_pa14_orthologs.xlsx'};
                 
+F.natureEcoli = {'ecoli_bw25113.xlsx'
+                 'ecoli_iAi1.xlsx'};
+                
 F.yehData = 'ecoli_yeh.xlsx';
 F.asmData = 'asm_data.xlsx';
 

@@ -72,6 +72,7 @@ resultsTable
 averagesTable
 overviewTable
 
+indigoSummary.trainingData = erase(indigoSummary.trainingData,'.xlsx');
 if indigoSummary.standardized == 1
     resultsFile = strcat('indigoResults/',dataName,sprintf('_%s_%s_z.xlsx', ...
     indigoSummary.trainingData, indigoSummary.valMethod));
@@ -104,7 +105,6 @@ function getStats(Ytrain, Ytest, Ypred, mode)
     %antagonism - assign value = 1, but remember, antagonism is bad!
     Ytest(Ytest >= antagonismCutoff) = 1;
     Ypred(Ypred >= antagonismCutoff) = 1;
-
     %Get accuracy, precision and recall
     accuracy = sum(Ypred == Ytest)/length(Ypred);
     absError = mean(abs(Ypred-Ytest));
@@ -112,7 +112,7 @@ function getStats(Ytrain, Ytest, Ypred, mode)
     recallSynergy = sum(Ypred == -1 & Ytest == -1)/sum(Ytest == -1);
     precisionAntagonism = sum(Ypred == 1 & Ytest == 1)/sum(Ypred == 1);
     recallAntagonism = sum(Ypred == 1 & Ytest == 1)/sum(Ytest == 1);
-
+    
     %Compare model accuracy to 100 random guesses
     accuracyGuess = zeros(100,1);
     for k = 1:100
@@ -143,17 +143,17 @@ function getStats(Ytrain, Ytest, Ypred, mode)
 
     end
     
-    labels = {};
-    if sum(Ytest == -1) > 0
+    labels = {};  
+    if sum(Ytest == -1) > 0  && (sum(Ytest == 0) > 0 || sum(Ytest == 1) > 0)
         %ROC Curve for synergy
         [X_synergy,Y_synergy,T_synergy,AUC_synergy] = perfcurve(Ytest,Ypred,-1);
         plot(X_synergy,Y_synergy)
-        labels = {'synergy'};
+        labels{end+1} = 'synergy';
     else
         AUC_synergy = nan;
     end
     hold on
-    if sum(Ytest == 1) > 0
+    if sum(Ytest == 1) > 0 && (sum(Ytest == 0) > 0 || sum(Ytest == -1) > 0)
         %ROC Curve for antagonism
         [X_antagonism,Y_antagonism,T_antagonism,AUC_antagonism] = perfcurve(Ytest,Ypred,1);
         plot(X_antagonism,Y_antagonism)

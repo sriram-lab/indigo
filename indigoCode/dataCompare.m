@@ -20,7 +20,7 @@ for i = 1:length(files)
     A_drugs = string(A_drugs);
     
     for j = 1:length(files)    
-        while j > i    %so that you don't get repeat comparisons
+        if j > i    %so that you don't get repeat comparisons
             B_label = sprintf('%s score',names{j});
             [B_scores, B_drugs] = xlsread(files{j});
             B_drugs = string(B_drugs);
