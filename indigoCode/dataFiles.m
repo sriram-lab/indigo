@@ -30,4 +30,10 @@ F.asmData = 'asm_data.xlsx';
 F.ecoliBlissData = 'ecoli_bliss.xlsx';
 F.ecoliLoeweData = 'ecoli_loewe.xlsx';
 
+F.tbData = 'tb_data.xlsx';
+F.tbOrthologs = 'ecoli_mtb_orthologs.xlsx';
+
+F.saureusData = 'saureus_data.xlsx';
+F.saureusOrthologs = 'ecoli_staph_orthologs.xlsx';
+
 end

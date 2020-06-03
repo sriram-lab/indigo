@@ -180,7 +180,6 @@ for i = 1:K
         Ytrain = scores(train);
         Xtest = interactions(test,:);
         Ytest = scores(test);
-
         [~,~,~,sigma_delta_input] = indigo_predict(indigo_model,Xtrain, ...
              2,'identifiers_match_tb.xlsx','ecoli_phenotype_data_cell.xlsx');
 

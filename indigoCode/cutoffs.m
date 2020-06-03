@@ -40,5 +40,13 @@ elseif strcmp(filename,files.ecoliBlissData) || strcmp(filename,files.ecoliLoewe
 %same as other Kishony paper, according to article https://www.nature.com/articles/s41564-018-0252-1
     synergy = -0.25;
     antagonism = 0.25;
+    
+elseif strcmp(filename,files.tbData)
+    synergy = -0.1;
+    antagonism = 0.1;
+    
+elseif strcmp(filename,files.saureusData)
+    synergy = -0.25;
+    antagonism = 1;
 end
 end

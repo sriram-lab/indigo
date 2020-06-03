@@ -21,6 +21,7 @@ for i = 1:length(files)
     
     for j = 1:length(files)    
         if j > i    %so that you don't get repeat comparisons
+            %remove all rows that have more than 2 drugs
             B_label = sprintf('%s score',names{j});
             [B_scores, B_drugs] = xlsread(files{j});
             B_drugs = string(B_drugs);

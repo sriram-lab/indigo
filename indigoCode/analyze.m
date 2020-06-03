@@ -36,7 +36,6 @@ varnames = {'Interactions', ...
             'Recall (synergy)', ...
             'Precision (antagonism)', ...
             'Recall (antagonism)', ...
-            'Mean Guess Error', ...
             'Guess Accuracy (p value)', ...
             'AUC - ROC (synergy)', ...
             'AUC - ROC (antagonism)'};
@@ -125,8 +124,6 @@ function getStats(Ytrain, Ytest, Ypred, mode)
     end
     %something seems to be wrong here! - not quite sure what the problem is
     %yet
-    meanGuess = mean(accuracyGuess);
-    meanGuessError = meanGuess - accuracy;
     [~,p] = ttest2(accuracy,accuracyGuess);
     
     if mode == 1
@@ -244,7 +241,6 @@ function getStats(Ytrain, Ytest, Ypred, mode)
         stats.recallSynergy(i,1) = recallSynergy;
         stats.precisionAntagonism(i,1) = precisionAntagonism;
         stats.recallAntagonism(i,1) = recallAntagonism;
-        stats.meanGuessError(i,1) = meanGuessError;
         stats.compareGuess(i,1) = p;
         stats.AUC_synergy(i,1) = AUC_synergy;
         stats.AUC_antagonism(i,1) = AUC_antagonism;
@@ -258,7 +254,6 @@ function getStats(Ytrain, Ytest, Ypred, mode)
         overview.recallSynergy = recallSynergy;
         overview.precisionAntagonism = precisionAntagonism;
         overview.recallAntagonism = recallAntagonism;
-        overview.meanGuessError = meanGuessError;
         overview.compareGuess = p;
         overview.AUC_synergy = AUC_synergy;
         overview.AUC_antagonism = AUC_antagonism;
@@ -307,22 +302,3 @@ end
     %take scores that are above antagonism cutoff
     %get first 10 scores and drug pairs
     
-
-
-%Confusion matrix
-%set cutoffs for synergy and antagonism
-%1 set with neutral
-%with neutral, can get a recall for synergy and antagonism
-%1 set without neutral
-%https://en.wikipedia.org/wiki/Precision_and_recall#Definition_(classification_context)
-
-%Specify 'RowSummary' as 'row-normalized' to display the true positive rates
-%and false positive rates in the row summary. Also, specify 'ColumnSummary' 
-%as 'column-normalized' to display the positive predictive values and false 
-%discovery rates in the column summary.
-
-%Row-normalized = gives you sensitivity (recall) and (1-specificity)
-%column-normalized = gives you PPV - proportion of positive results that
-%are true positives
-%also gives you false discovery rate - number of false positives in all
-%rejected hypotheses
