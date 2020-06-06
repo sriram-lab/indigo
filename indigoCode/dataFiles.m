@@ -36,4 +36,7 @@ F.tbOrthologs = 'ecoli_mtb_orthologs.xlsx';
 F.saureusData = 'saureus_data.xlsx';
 F.saureusOrthologs = 'ecoli_staph_orthologs.xlsx';
 
+F.acinetobacterData = 'acinetobacter_data.xlsx';
+F.acinetobacterOrthologs = 'ecoli_acinetobacter_orthologs.xlsx';
+
 end

@@ -42,11 +42,19 @@ elseif strcmp(filename,files.ecoliBlissData) || strcmp(filename,files.ecoliLoewe
     antagonism = 0.25;
     
 elseif strcmp(filename,files.tbData)
+    %FIC
     synergy = -0.1;
     antagonism = 0.1;
     
 elseif strcmp(filename,files.saureusData)
+    %Loewe
     synergy = -0.25;
     antagonism = 1;
+    
+elseif strcmp(filename,files.acinetobacterData)
+    %Loewe-additivity model and Fractional Inhibitory Concentration (FIC)
+    %log-FIC, https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006677#
+    synergy = -0.2;
+    antagonism = 0.2;
 end
 end

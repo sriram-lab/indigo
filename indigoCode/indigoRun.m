@@ -81,8 +81,7 @@ if ~isempty(trainingData)
              trainFiles.natureOrthologs{i-1},sigma_delta_input, indigo_model); 
 
              interaction_scores_all = [interaction_scores_all; train_scores];
-             sigma_delta_scores_all = [sigma_delta_scores_all, sigma_delta_scores];
-             
+             sigma_delta_scores_all = [sigma_delta_scores_all, sigma_delta_scores];    
          end
          
     elseif strcmp(trainingData,'nature_ecoli')
