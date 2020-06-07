@@ -7,6 +7,7 @@ function [synergy,antagonism] = cutoffs(filename)
 %when doing zscore
 %But makes sense to do zscore as scale is off from other scoressets
 %Majority of interactions are antagonistic (see Figure 1)
+%update so that it is actual file names
 files = dataFiles();
 
 if strcmp(filename, files.indigoData)
