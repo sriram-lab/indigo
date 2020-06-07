@@ -1,10 +1,19 @@
+%Reading in files from a directory
+Files=dir('*.*');
+
+for k=1:length(Files)
+   FileNames=Files(k).name
+end
+
+%get list of all files
+%Find files that match regex expression
+%return files
 
 files = cellstr(ls('indigoData'));
 %data = stl_data.xlsx
 %ortholog = stl_orthologs.xlsx
-pattern = strcat(erase(file,'.xlsx'),'_orthologs.xlsx');
-contains(files,pattern)
-
+str = 
+ortholog = regexp(
 %File naming scheme
 %user inputs all files that they want to be in training data
 %nature data can all have same naming scheme

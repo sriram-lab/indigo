@@ -1,9 +1,11 @@
-function indigoSummary = indigoRun(testFile,trainingData,valMethod,K, standardize,input_type)
+function indigoSummary = indigoRun(testFile,valMethod,K,orthology,trainingData,trainingOrthology, standardize,input_type)
 arguments
     testFile char
-    trainingData char = ''
     valMethod char {mustBeMember(valMethod,{'holdout_onself', 'cv_onself', 'independent', 'cv'})} = 'holdout_onself'
     K {mustBeInteger} = 5
+    orthology char = ''
+    trainingData char = ''
+    trainingOrthology char = ''
     standardize char {mustBeMember(standardize,{'','standardized'})}= ''
     input_type {mustBeInteger} = 2;
 end
@@ -13,11 +15,12 @@ end
 %required argument:
 %testFile
 %optional arguments:
-%trainingData - single file or cell array of files
 %valMethod - name-value argument, options are holdout_onself, cv_onself, independent, cv
 %K - fold parameter for K-fold cross validation, default = 5
+%trainingData - 'indigo','nature',cell array of specific files,single
+%file
+%orthology - whether test data is ecoli or not, if not, specify orthology file
 %standardize - whether data will be standardized or not
-%input type
 
 %scores = drug interaction scores
 %interactions = drug pairs
@@ -89,7 +92,6 @@ if ~isempty(trainingData)
                  train_orth,sigma_delta_scores, indigo_model); 
              end
         end
-        %Training data --> fitrensemble
         interaction_scores_all = [interaction_scores_all; train_scores];
         sigma_delta_scores_all = [sigma_delta_scores_all, sigma_delta_scores];    
     end
