@@ -8,26 +8,32 @@ function [synergy,antagonism] = cutoffs(filename)
 %But makes sense to do zscore as scale is off from other scoressets
 %Majority of interactions are antagonistic (see Figure 1)
 %update so that it is actual file names
-files = dataFiles();
 
-if strcmp(filename, files.indigoData)
+natureData = {'ecoli_bw25113.xlsx'
+              'ecoli_iAi1.xlsx'
+              'stlt2.xlsx'
+              'st14028.xlsx'
+              'pao1.xlsx'
+              'pa14.xlsx'};
+
+if strcmp(filename, 'orig_ecoli.xlsx')
     synergy = -0.25;
     antagonism = 1;
     
-elseif ismember(filename,files.natureData)
+elseif ismember(filename,natureData)
 %nature, according to article: https://www.nature.com/articles/s41586-018-0278-9
 %bliss
     synergy = -0.1;
     antagonism = 0.1;
     
-elseif strcmp(filename, files.yehData)
+elseif strcmp(filename, 'ecoli_yeh.xlsx')
 %Yeh kishony, according to article https://www.nature.com/articles/ng1755#Fig3
 %See figure 3
 %bliss I think
     synergy = -0.25;
     antagonism = 0.25;
 
-elseif strcmp(filename, files.asmData)
+elseif strcmp(filename, 'asm_data.xlsx')
 %asm article, according to article https://aac.asm.org/content/58/8/4573
 %loewe
 %this one was flipped, synergy > 0.25
@@ -37,22 +43,22 @@ elseif strcmp(filename, files.asmData)
     synergy = -0.25;
     antagonism = 0.25;
     
-elseif strcmp(filename,files.ecoliBlissData) || strcmp(filename,files.ecoliLoeweData)
+elseif strcmp(filename,'ecoli_bliss.xlsx') || strcmp(filename,'ecoli_loewe.xlsx')
 %same as other Kishony paper, according to article https://www.nature.com/articles/s41564-018-0252-1
     synergy = -0.25;
     antagonism = 0.25;
     
-elseif strcmp(filename,files.tbData)
+elseif strcmp(filename,'tb.xlsx')
     %FIC
     synergy = -0.1;
     antagonism = 0.1;
     
-elseif strcmp(filename,files.saureusData)
+elseif strcmp(filename,'staph.xlsx')
     %Loewe
     synergy = -0.25;
     antagonism = 1;
     
-elseif strcmp(filename,files.acinetobacterData)
+elseif strcmp(filename,'acinetobacter.xlsx')
     %Loewe-additivity model and Fractional Inhibitory Concentration (FIC)
     %log-FIC, https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006677#
     synergy = -0.2;

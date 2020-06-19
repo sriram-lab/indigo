@@ -1,14 +1,14 @@
-function indigoSummary = indigoRun(testFile,trainingData,valMethod,K, standardize,input_type)
+function indigoSummary = indigoRun(testFile,trainingData,valMethod,K,standardize,input_type)
 arguments
     testFile char
-    trainingData char = ''
+    trainingData = ''
     valMethod char {mustBeMember(valMethod,{'holdout_onself', 'cv_onself', 'independent', 'cv'})} = 'holdout_onself'
     K {mustBeInteger} = 5
     standardize char {mustBeMember(standardize,{'','standardized'})}= ''
     input_type {mustBeInteger} = 2;
 end
 
-%[indigoSummary] = indigo_run(testFile,valMethod,K,orthology,trainingData,standardize)
+%[indigoSummary] = indigoRun(testFile,trainingData,valMethod,K, standardize,input_type)
 % This function runs indigo and returns a summary of the results
 %required argument:
 %testFile
@@ -60,10 +60,13 @@ if ~isempty(trainingData)
     indigoSummary.trainingData = trainingData;
     interaction_scores_all = [];
     sigma_delta_scores_all = [];
+    
+    if ischar(class(trainingData)) || isstring(class(trainingData))
+        %convert to cell
+        trainingData = cellstr(trainingData);
+    end
     for i = 1:length(trainingData)
-        files = cellstr(ls('indigoData'));
         orthology = strcat(erase(trainingData{i},'.xlsx'),'_orthologs.xlsx');
-        
         if i == 1
             %Train first
             [train_interactions, train_scores, labels, indigo_model,...

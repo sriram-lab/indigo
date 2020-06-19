@@ -8,17 +8,20 @@ end
 %function will do pairwise comparison between all data files and orthology
 %common use case may be comparing training data file and test data file
 names = erase(files,'.xlsx');
+allFiles = cellstr(ls('indigoData'));
+
 %initialize arrays for storing comparison results
 R_values = zeros(length(files));
 P_values = zeros(length(files));
 interactionCounts = zeros(length(files));
 sharedInteractions = cell(length(files));
+orthologCounts = zeros(length(files));
+sharedOrthologs = cell(length(files));
 %it doesn't matter whether A or B is bigger file
 for i = 1:length(files)
     A_label = sprintf('%s score',names{i});   
     [A_scores, A_drugs] = xlsread(files{i});
-    A_drugs = string(A_drugs);
-    
+    A_drugs = string(A_drugs); 
     for j = 1:length(files)    
         if j > i    %so that you don't get repeat comparisons
             %remove all rows that have more than 2 drugs
@@ -42,6 +45,20 @@ for i = 1:length(files)
                 %if there are no shared interactions
                 fprintf('%s and %s have no shared interactions\n\n',names{i},names{j});
             end
+                        
+            %check if both files have corresponding orthology files
+            orthologyFile_A = strcat(erase(files{i},'.xlsx'),'_orthologs.xlsx');
+            orthologyFile_B = strcat(erase(files{j},'.xlsx'),'_orthologs.xlsx');
+            if sum(contains(allFiles,orthologyFile_A)) ~= 0 && sum(contains(allFiles,orthologyFile_B)) ~= 0
+                [~,A_orthologs] = xlsread(orthologyFile_A);
+                [~,B_orthologs] = xlsread(orthologyFile_B);
+                Lia = ismember(A_orthologs, B_orthologs);
+                orthologsShared = A_orthologs(Lia);
+                if ~isempty(orthologsShared)
+                    orthologCounts(i,j) = length(orthologsShared);
+                    sharedOrthologs{i,j} = orthologsShared;
+                end          
+            end            
         end
     end
 end
@@ -58,8 +75,15 @@ R_values.Properties.RowNames = names;
 P_values = array2table(P_values);
 P_values.Properties.VariableNames = names;
 P_values.Properties.RowNames = names;
+
+%orthology
+orthologCounts = array2table(orthologCounts);
+orthologCounts.Properties.VariableNames = names;
+orthologCounts.Properties.RowNames = names;
+
 %show tables
 interactionCounts
 R_values
 P_values
+orthologCounts
 end
