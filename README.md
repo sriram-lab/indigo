@@ -17,11 +17,11 @@ Takes in a list of files and determines number of shared interactions. Determine
 
 Main part of the process. Takes in the following:
 - file with data you want to test
+- trainingData you want to use. Currently can be train on original INDIGO and nature data
 - Validation method: cross validation, holdout, independent
 - the number of subsets/iterations you want to do during validation
-- orthology file if test data is not e. coli
-- trainingData you want to use. Currently can be train on original INDIGO and nature data
-- standardize -converts scores to z-scores
+- standardize: converts scores to z-scores
+- input type: either 1 or 2, default is 2 to make predictions for drug combinations
 
 4. `[stats, averages, overview] = analyze(indigoSummary)`
 
