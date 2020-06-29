@@ -73,12 +73,8 @@ ylabel('interaction scores')
 subplot(2,2,4)
 x = 1:length(scores);
 %scatter plot grouped by synergy, neutral, antagonism
-% gscatter(x,scores,{scores <= synergy, scores < antagonism & scores > synergy, scores >= antagonism})
-gscatter(x,scores,{scores < synergy,scores >= antagonism})
-% legend('antagonistic','neutral','synergistic')
-legend('antagonistic','synergistic')
-
+gscatter(x,scores,{scores <= synergy, scores < antagonism & scores > synergy, scores >= antagonism})
+legend('antagonistic','neutral','synergistic')
 xlabel('interactions')
 ylabel('scores')
-
 end
