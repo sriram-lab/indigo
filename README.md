@@ -13,7 +13,7 @@ Takes in the file of interest and returns a summary of descriptive statistics of
 
 Takes in a list of files and determines number of shared interactions. Determines correlation between datasets. Only works for datasets containing pairwise drug interactions.
 
-3. `indigoSummary = indigoRun(testFile,valMethod,K,orthology,trainingData,standardize);`
+3. `indigoSummary = indigoRun(testFile,trainingData,valMethod,K, standardize,input_type);`
 
 Main part of the process. Takes in the following:
 - file with data you want to test
