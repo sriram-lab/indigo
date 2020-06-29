@@ -22,7 +22,6 @@ Main part of the process. Takes in the following:
 - orthology file if test data is not e. coli
 - trainingData you want to use. Currently can be train on original INDIGO and nature data
 - standardize -converts scores to z-scores
-* hello
 
 4. [stats,averages,overview] = analyze(indigoSummary)
 
