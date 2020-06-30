@@ -1,7 +1,7 @@
 # indigo
 This is a readme for indigo repository!
 
-Currently working on better README with code blocks showing how to use code!
+INDIGO runs in MATLAB.
 
 Main file to run INDIGO is called indigo.m (in indigoCode). This script executes the following functions:
 
