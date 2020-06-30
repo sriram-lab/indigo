@@ -26,7 +26,3 @@ Main part of the process. Takes in the following:
 4. `[stats, averages, overview] = analyze(indigoSummary)`
 
 Takes output from INDIGO and analyzes results. Determines rank correlation, accuracy, etc. Plots ROC curves, confusion matrices and scatter plots of results (rank sorted).
-
-All data files should be in indigoData
-
-All results from analyze are saved and stored in indigoResults
