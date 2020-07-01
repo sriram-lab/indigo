@@ -17,7 +17,7 @@ Takes in a list of files and determines number of shared interactions. Determine
 
 Main part of the process. Takes in the following:
 - file with data you want to test
-- trainingData you want to use. Currently can be train on original INDIGO and nature data
+- trainingData you want to use. Currently can be train on original INDIGO or nature data
 - Validation method: cross validation, holdout, independent
 - the number of subsets/iterations you want to do during validation
 - standardize: converts scores to z-scores
@@ -26,3 +26,7 @@ Main part of the process. Takes in the following:
 4. `[stats, averages, overview] = analyze(indigoSummary)`
 
 Takes output from INDIGO and analyzes results. Determines rank correlation, accuracy, etc. Plots ROC curves, confusion matrices and scatter plots of results (rank sorted).
+
+5. `save(saveIndigo(indigoSummary))`
+
+Saves workspace in .mat file. Names .mat file based on test data, training data, validation method and standardization parameter for that run.
