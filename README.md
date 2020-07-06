@@ -32,3 +32,5 @@ Takes output from INDIGO and analyzes results. Determines rank correlation, accu
 Saves workspace in .mat file. Names .mat file based on test data, training data, validation method and standardization parameter for that run.
 
 A test to make sure git is working on my new macbook
+
+Another test to see verified commit
