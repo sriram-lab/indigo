@@ -64,13 +64,12 @@ elseif strcmp(filename,'acinetobacter.xlsx')
     synergy = -0.2;
     antagonism = 0.2;
     
-elseif strcmp(filename,'tb_pairwise.xlsx')
+elseif strcmp(filename,'tb_full.xlsx')
     %Loewe-additivity model and Fractional Inhibitory Concentration (FIC)
     %IC70 (70% inhibitory concentration)
-    %??=?log2(FIC)
-    %This score is 0, <0 or >0 for additive, synergistic or antagonistic pairs, respectively.
-    %https://www.nature.com/articles/s41598-019-48410-y#Sec12
     synergy = 0;
     antagonism = 0;
 end
+
+
 end

@@ -8,7 +8,7 @@ end
 %function will do pairwise comparison between all data files and orthology
 %common use case may be comparing training data file and test data file
 names = erase(files,'.xlsx');
-allFiles = cellstr(ls('indigoData'));
+allFiles = cellstr(ls('data'));
 
 %initialize arrays for storing comparison results
 R_values = zeros(length(files));

@@ -24,12 +24,12 @@ summary.range = range(scores);
 summary.mean = mean(scores);
 summary.std = std(scores);
 summary.interactionCount = length(scores);
-summary.synergyCount = sum((scores <= synergy));
-summary.antagonismCount = sum((scores >= antagonism));
+summary.synergyCount = sum((scores < synergy));
+summary.antagonismCount = sum((scores > antagonism));
 
 %if orthology
 %count number of orthologs
-files = cellstr(ls('indigoData'));
+files = cellstr(ls('data'));
 orthology = strcat(erase(filename,'.xlsx'),'_orthologs.xlsx');
 if sum(contains(files,orthology)) ~= 0
     [~,orth] = xlsread(orthology);
@@ -57,7 +57,7 @@ hold off
 legend('original scores','z-scores')
 
 % write norm scores to second sheet
-filepath = strcat('indigoData/',filename);
+filepath = strcat('data/',filename);
 writecell([drugs,num2cell(normScores)],filepath,'Sheet',2)
 subplot(2,2,2)
 
@@ -73,8 +73,8 @@ ylabel('interaction scores')
 subplot(2,2,4)
 x = 1:length(scores);
 %scatter plot grouped by synergy, neutral, antagonism
-gscatter(x,scores,{scores <= synergy, scores < antagonism & scores > synergy, scores >= antagonism})
-legend('antagonistic','neutral','synergistic')
+gscatter(x,scores,{scores < synergy, scores < antagonism & scores > synergy, scores > antagonism})
+legend('neutral','antagonistic','synergistic')
 xlabel('interactions')
 ylabel('scores')
 end

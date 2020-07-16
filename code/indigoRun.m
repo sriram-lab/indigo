@@ -44,7 +44,7 @@ if strcmp(standardize,'standardized')
 end
 
 
-files = cellstr(ls('indigoData'));
+files = cellstr(ls('data'));
 %store data from testFile
 [scores,interactions] = xlsread(testFile,sheet);
 orthology = strcat(erase(testFile,'.xlsx'),'_orthologs.xlsx');
