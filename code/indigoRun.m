@@ -58,6 +58,7 @@ end
 %can specify a file, indigo or nature
 if ~isempty(trainingData)
     indigoSummary.trainingData = trainingData;
+    interactions_all = [];
     interaction_scores_all = [];
     sigma_delta_scores_all = [];
     
@@ -93,33 +94,56 @@ if ~isempty(trainingData)
              end
         end
         %Training data --> fitrensemble
+        interactions_all = [interactions_all; train_interactions];
         interaction_scores_all = [interaction_scores_all; train_scores];
         sigma_delta_scores_all = [sigma_delta_scores_all, sigma_delta_scores];    
     end
 end
          
 indigoSummary.valMethod = valMethod;
-indigoSummary.K = K;
-for i = 1:K
-    fprintf('Run %d\n',i)
-    if strcmp(valMethod,'holdout_onself')
-        %Only use data from test file
-        %Holdout validation
-        [train,test] = crossvalind('HoldOut',length(interactions),0.2); %20% of data is in test set
-        Xtrain = interactions(train,:);
-        Ytrain = scores(train);
-        Xtest = interactions(test,:);
-        Ytest = scores(test);
-        %plug training data into indigo train
-        writecell([Xtrain,num2cell(Ytrain)],'train.xlsx','Sheet',sheet)
-        
-        [train_interactions, train_scores, labels, indigo_model,...
-         sigma_delta_scores, conditions] = indigo_train('train.xlsx', sheet,...
-         'identifiers_match_tb.xlsx','ecoli_phenotype_data_cell.xlsx');
 
-        %Predict and evaluate
-        predictStep();
-    elseif strcmp(valMethod,'cv_onself') 
+    
+if strcmp(valMethod,'holdout_onself')
+    %Only use data from test file
+    %Holdout validation
+    i = 1;
+    [train,test] = crossvalind('HoldOut',length(interactions),0.2); %20% of data is in test set
+    Xtrain = interactions(train,:);
+    Ytrain = scores(train);
+    Xtest = interactions(test,:);
+    Ytest = scores(test);
+    %plug training data into indigo train
+    writecell([Xtrain,num2cell(Ytrain)],'train.xlsx','Sheet',sheet)
+
+    [train_interactions, train_scores, labels, indigo_model,...
+     sigma_delta_scores, conditions] = indigo_train('train.xlsx', sheet,...
+     'identifiers_match_tb.xlsx','ecoli_phenotype_data_cell.xlsx');
+
+    %Predict and evaluate
+    predictStep();   
+elseif strcmp(valMethod,'independent')
+    i = 1;
+    %independent validation
+    %No need to do this more than once
+    %leave out the entire test set and make predictions on it
+    %train on either indigo, nature or both
+    %need to use fitresnsemble
+    tic
+    indigo_model = fitrensemble(single(sigma_delta_scores_all'), ...
+                   single(interaction_scores_all),'Method','Bag');
+    toc
+
+    Xtrain = interactions_all;
+    Ytrain = interaction_scores_all;
+    Xtest = interactions;   %What you are plugging in to make predictions
+    Ytest = scores;         %What you are comparing to at the end
+
+    %Predict and evaluate
+    predictStep();
+elseif strcmp(valMethod,'cv_onself')
+    indigoSummary.K = K;
+    for i = 1:K
+        fprintf('Run %d\n',i)
         %Only use data from test file
         idx = crossvalind('Kfold',length(scores),K);
         test = (idx == i);
@@ -129,15 +153,18 @@ for i = 1:K
         Xtest = interactions(test,:);
         Ytest = scores(test);
         writecell([Xtrain,num2cell(Ytrain)],'train.xlsx')
-        
+
         [train_interactions, train_scores, labels, indigo_model,...
          sigma_delta_scores, conditions] = indigo_train('train.xlsx',sheet, ...
          'identifiers_match_tb.xlsx','ecoli_phenotype_data_cell.xlsx');
-     
+
         %Predict and evaluate
         predictStep();    
-
-    elseif strcmp(valMethod,'cv')
+    end
+elseif strcmp(valMethod,'cv')
+    indigoSummary.K = K;
+    for i = 1:K
+        fprintf('Run %d\n',i)
         %Only method that requires data from test file to be in training data
         %with other sets of data
         %Split up test group into subgroups
@@ -167,25 +194,6 @@ for i = 1:K
         %Predict and evaluate
         predictStep();
     end
-end
-
-if strcmp(valMethod,'independent')
-    i = 1;
-    %independent validation
-    %No need to do this more than once
-    %leave out the entire test set and make predictions on it
-    %train on either indigo, nature or both
-    %need to use fitresnsemble
-    tic
-    indigo_model = fitrensemble(single(sigma_delta_scores_all'), ...
-                   single(interaction_scores_all),'Method','Bag');
-    toc
-
-    Xtest = interactions;   %What you are plugging in to make predictions
-    Ytest = scores;         %What you are comparing to at the end
-
-    %Predict and evaluate
-    predictStep();
 end
 
 %nested function for predicting scores and evaluating results

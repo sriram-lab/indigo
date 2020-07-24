@@ -1,61 +1,73 @@
 function [stats,averages,overview] = analyze(indigoSummary)
-
+%stats and averages only apply when you do cross validation and have multiple subsets
 dataName = erase(indigoSummary.testFile,'.xlsx');
 
 %additional stats
 %cutoffs determined by specific dataset
-Ytest_total = [];
-Ypred_total = [];
-drugs_total = [];
-for i = 1:indigoSummary.K
-    drugs_total = [drugs_total; indigoSummary.testPairs{:,i}];
-    Ytest_total = [Ytest_total; indigoSummary.testScores{:,i}];
-    Ypred_total = [Ypred_total; indigoSummary.predictedScores{:,i}];
-    Ytrain = indigoSummary.trainScores{:,i};
-    Ytest = indigoSummary.testScores{:,i};
-    Ypred = indigoSummary.predictedScores{:,i};
-    
-    %call function
-    getStats(Ytrain,Ytest,Ypred,1);     %1 means analysis per Subset
+stats = struct;
+averages = struct;
+if strcmp(indigoSummary.valMethod,'cv_onself') || strcmp(indigoSummary.valMethod,'cv')
+    Ytest_total = [];
+    Ypred_total = [];
+    drugs_total = [];
+    for i = 1:indigoSummary.K
+        drugs_total = [drugs_total; indigoSummary.testPairs{:,i}];
+        Ytest_total = [Ytest_total; indigoSummary.testScores{:,i}];
+        Ypred_total = [Ypred_total; indigoSummary.predictedScores{:,i}];
+        Ytrain = indigoSummary.trainScores{:,i};
+        Ytest = indigoSummary.testScores{:,i};
+        Ypred = indigoSummary.predictedScores{:,i};
+
+        %call function
+        getStats(Ytrain,Ytest,Ypred,1);     %1 means analysis per Subset
+    end
+    Ytrain_total = Ytest_total;
+else
+    drugs_total = [indigoSummary.testPairs{:,1}];
+    Ytest_total = [indigoSummary.testScores{:,1}];
+    Ypred_total = [indigoSummary.predictedScores{:,1}];
+    Ytrain_total = [indigoSummary.trainScores{:,1}];
 end
 
 %overall - a new struct
+
 overview.drugInteractions = drugs_total;
 overview.experimentalScores = Ytest_total;
 overview.predictedScores = Ypred_total;
-getStats(Ytest_total,Ytest_total,Ypred_total,2);    %2 means overall analysis
+getStats(Ytrain_total,Ytest_total,Ypred_total,2);    %2 means overall analysis
 
 %Tables
-resultsTable = struct2table(stats);
 varnames = {'Interactions', ...
-            'R (rank)', ...
-            'P value', ...
-            'Accuracy', ...
-            'Absolute error', ...
-            'Precision (synergy)', ...
-            'Recall (synergy)', ...
-            'Precision (antagonism)', ...
-            'Recall (antagonism)', ...
-            'Guess Accuracy (p value)', ...
-            'AUC - ROC (synergy)', ...
-            'AUC - ROC (antagonism)'};
-resultsTable.Properties.VariableNames = varnames;
-rownames = cell(1,indigoSummary.K);
-for i = 1:indigoSummary.K
-    rownames{i} = sprintf('Subset %d', i);
+                'R (rank)', ...
+                'P value', ...
+                'Accuracy', ...
+                'Absolute error', ...
+                'Precision (synergy)', ...
+                'Recall (synergy)', ...
+                'Precision (antagonism)', ...
+                'Recall (antagonism)', ...
+                'Guess Accuracy (p value)', ...
+                'AUC - ROC (synergy)', ...
+                'AUC - ROC (antagonism)'};
+if strcmp(indigoSummary.valMethod,'cv_onself') || strcmp(indigoSummary.valMethod,'cv')
+    resultsTable = struct2table(stats);
+    resultsTable.Properties.VariableNames = varnames;
+    rownames = cell(1,indigoSummary.K);
+    for i = 1:indigoSummary.K
+        rownames{i} = sprintf('Subset %d', i);
+    end
+    resultsTable.Properties.RowNames = rownames;
+
+    fields = fieldnames(stats);
+    tableArray = zeros(length(fields),1);
+    for i = 1:length(fields)
+        averages.(fields{i}) = mean(stats.(fields{i}));
+        tableArray(i) = mean(stats.(fields{i}));
+    end
+    averagesTable = table(tableArray);
+    averagesTable.Properties.RowNames = varnames; 
+    averagesTable.Properties.VariableNames = {'Value'};
 end
-resultsTable.Properties.RowNames = rownames;
-                                         
-fields = fieldnames(stats);
-tableArray = zeros(length(fields),1);
-averages = struct;
-for i = 1:length(fields)
-    averages.(fields{i}) = mean(stats.(fields{i}));
-    tableArray(i) = mean(stats.(fields{i}));
-end
-averagesTable = table(tableArray);
-averagesTable.Properties.RowNames = varnames; 
-averagesTable.Properties.VariableNames = {'Value'};
 
 fields = fieldnames(overview);
 tableArray = zeros(length(fields)-3,1);  %don't include first 3 fields
@@ -65,11 +77,6 @@ end
 overviewTable = table(tableArray);
 overviewTable.Properties.RowNames = varnames;
 overviewTable.Properties.VariableNames = {'Value'};
-
-%Final output!
-resultsTable
-averagesTable
-overviewTable
 
 indigoSummary.trainingData = erase(indigoSummary.trainingData,'.xlsx');
 if length(indigoSummary.trainingData) == 6
@@ -84,15 +91,21 @@ else
     resultsFile = strcat('results/',dataName,sprintf('_%s_%s.xlsx', ...
     indigoSummary.trainingData, indigoSummary.valMethod));
 end
-writetable(resultsTable,resultsFile,'Sheet','results','WriteRowNames',true)
-writetable(averagesTable,resultsFile,'Sheet','averages','WriteRowNames',true)
-writetable(overviewTable,resultsFile,'Sheet','overview','WriteRowNames',true)
-%set up proper naming for everything
-%filenames
-%data files
-%results files
-%scripts
-%general organization
+
+%Final output!
+
+if strcmp(indigoSummary.valMethod,'cv_onself') || strcmp(indigoSummary.valMethod,'cv')
+    resultsTable
+    averagesTable
+    overviewTable
+    writetable(resultsTable,resultsFile,'Sheet','results','WriteRowNames',true)
+    writetable(averagesTable,resultsFile,'Sheet','averages','WriteRowNames',true)
+    writetable(overviewTable,resultsFile,'Sheet','overview','WriteRowNames',true)
+else
+    overviewTable
+    writetable(overviewTable,resultsFile,'Sheet','overview','WriteRowNames',true)
+end
+
 function getStats(Ytrain, Ytest, Ypred, mode)
     interactionCount = length(Ytest);
     %correlation 
@@ -120,11 +133,7 @@ function getStats(Ytrain, Ytest, Ypred, mode)
     %Compare model accuracy to 100 random guesses
     accuracyGuess = zeros(100,1);
     for k = 1:100
-        if mode == 1
-            random_pred = Ytrain(randperm(length(Ytrain), length(Ytest))); %shuffle values around
-        else
-            random_pred = Ytrain(randperm(length(Ytrain)));
-        end
+        random_pred = Ytrain(randperm(length(Ytrain), length(Ytest))); %shuffle values around
         accuracyGuess(k) = sum(random_pred == Ytest)/length(Ytest);        
     end
     %something seems to be wrong here! - not quite sure what the problem is

@@ -69,6 +69,15 @@ elseif strcmp(filename,'tb_full.xlsx')
     %IC70 (70% inhibitory concentration)
     synergy = 0;
     antagonism = 0;
+
+elseif strcmp(filename,'tb_training.xlsx')
+    %Before log2: values less than 0.9 indicate synergy, values between 0.9 and 1.1 denote additivity, and values greater than 1.1 indicate antagonism.
+    synergy = -0.1;
+    antagonism = 0.1;
+
+elseif strcmp(filename,'tb_pairwise_complete.xlsx')
+    synergy = 0;
+    antagonism = 0;
 end
 
 
