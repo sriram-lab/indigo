@@ -123,11 +123,11 @@ if strcmp(valMethod,'holdout_onself')
     Ytest = scores(test);
     %plug training data into indigo train
     writecell([Xtrain,num2cell(Ytrain)],'train.xlsx','Sheet',sheet)
-
+    tic
     [train_interactions, train_scores, labels, indigo_model,...
-     sigma_delta_scores, conditions] = indigo_train_tb(trainingData{i},sheet, ...
+     sigma_delta_scores, conditions] = indigo_train_tb('train.xlsx',sheet, ...
      'identifiers_match_tb.xlsx',[],1,phenotype_data,phenotype_labels,col);
-
+    toc
     %Predict and evaluate
     predictStep();
 elseif strcmp(valMethod,'independent')
@@ -160,12 +160,12 @@ elseif strcmp(valMethod,'cv_onself')
         Ytrain = scores(train);
         Xtest = interactions(test,:);
         Ytest = scores(test);
-        writecell([Xtrain,num2cell(Ytrain)],'train.xlsx')
-
+        writecell([Xtrain,num2cell(Ytrain)],'train.xlsx','Sheet',sheet)
+        tic
         [train_interactions, train_scores, labels, indigo_model,...
-         sigma_delta_scores, conditions] = indigo_train_tb(trainingData{i},sheet, ...
+         sigma_delta_scores, conditions] = indigo_train_tb('train.xlsx',sheet, ...
          'identifiers_match_tb.xlsx',[],1,phenotype_data,phenotype_labels,col);
-
+        toc
         %Predict and evaluate
         predictStep();    
     end

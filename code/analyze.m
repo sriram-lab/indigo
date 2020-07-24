@@ -77,21 +77,29 @@ end
 overviewTable = table(tableArray);
 overviewTable.Properties.RowNames = varnames;
 overviewTable.Properties.VariableNames = {'Value'};
-
-indigoSummary.trainingData = erase(indigoSummary.trainingData,'.xlsx');
-if length(indigoSummary.trainingData) == 6
-    indigoSummary.trainingData = 'nature';
-elseif length(indigoSummary.trainingData) == 2
-    indigoSummary.trainingData = 'nature_ecoli';
-end
-if indigoSummary.standardized == 1
-    resultsFile = strcat('results/',dataName,sprintf('_%s_%s_z.xlsx', ...
-    indigoSummary.trainingData, indigoSummary.valMethod));
+if exist('indigoSummary.trainingData','var')
+    indigoSummary.trainingData = erase(indigoSummary.trainingData,'.xlsx');
+    if length(indigoSummary.trainingData) == 6
+        indigoSummary.trainingData = 'nature';
+    elseif length(indigoSummary.trainingData) == 2
+        indigoSummary.trainingData = 'nature_ecoli';
+    end
+    if indigoSummary.standardized == 1
+        resultsFile = strcat('results/',dataName,sprintf('_%s_%s_z.xlsx', ...
+        indigoSummary.trainingData, indigoSummary.valMethod));
+    else
+        resultsFile = strcat('results/',dataName,sprintf('_%s_%s.xlsx', ...
+        indigoSummary.trainingData, indigoSummary.valMethod));
+    end
 else
-    resultsFile = strcat('results/',dataName,sprintf('_%s_%s.xlsx', ...
-    indigoSummary.trainingData, indigoSummary.valMethod));
+    if indigoSummary.standardized == 1
+        resultsFile = strcat('results/',dataName,sprintf('_%s_z.xlsx', ...
+        indigoSummary.valMethod));
+    else
+        resultsFile = strcat('results/',dataName,sprintf('_%s.xlsx', ...
+        indigoSummary.valMethod));
+    end
 end
-
 %Final output!
 
 if strcmp(indigoSummary.valMethod,'cv_onself') || strcmp(indigoSummary.valMethod,'cv')

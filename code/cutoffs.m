@@ -78,6 +78,10 @@ elseif strcmp(filename,'tb_training.xlsx')
 elseif strcmp(filename,'tb_pairwise_complete.xlsx')
     synergy = 0;
     antagonism = 0;
+
+elseif strcmp(filename,'tb_all.xlsx')
+    synergy = 0;
+    antagonism = 0;
 end
 
 

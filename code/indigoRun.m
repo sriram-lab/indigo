@@ -152,7 +152,7 @@ elseif strcmp(valMethod,'cv_onself')
         Ytrain = scores(train);
         Xtest = interactions(test,:);
         Ytest = scores(test);
-        writecell([Xtrain,num2cell(Ytrain)],'train.xlsx')
+        writecell([Xtrain,num2cell(Ytrain)],'train.xlsx','Sheet',sheet)
 
         [train_interactions, train_scores, labels, indigo_model,...
          sigma_delta_scores, conditions] = indigo_train('train.xlsx',sheet, ...
