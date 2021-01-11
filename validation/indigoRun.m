@@ -153,7 +153,6 @@ if strcmp(valMethod,'holdout_onself')
     Ytest = scores(test);
     %plug training data into indigo train
     writecell([Xtrain,num2cell(Ytrain)],'train.xlsx','Sheet',sheet)
-    tic
     
     if modelType == 1
         [train_interactions, train_scores, labels, indigo_model,...
@@ -165,7 +164,20 @@ if strcmp(valMethod,'holdout_onself')
          annotation_file,chemogenomics_file,1,phenotype_data,phenotype_labels,col);
     end
     
+    
+    if ~isempty(testOrthologs)
+        [~,sigma_delta_scores] = indigo_orthology(labels, testOrthologs, ...
+                                 sigma_delta_scores, indigo_model); 
+    end
+
+   
+    %takes a long time!
+    tic
+    indigo_model = fitrensemble(single(sigma_delta_scores'), ...
+                   single(Xtrain),'Method','Bag');
     toc
+    
+    
     %Predict and evaluate
     predictStep();   
     
@@ -211,7 +223,8 @@ elseif strcmp(valMethod,'independent')
     %leave out the entire test set and make predictions on it
     
     %Only need to do this if you have more than one file in training data
-    if length(trainingData) > 1
+    %or if the training data has orthologs
+    if length(trainingData) > 1 || ~isempty(trainOrthologs)
         tic
         indigo_model = fitrensemble(single(sigma_delta_scores_all'), ...
                    single(interaction_scores_all),'Method','Bag');
@@ -238,11 +251,6 @@ elseif strcmp(valMethod,'cv_onself')
         Xtest = interactions(test,:);
         Ytest = scores(test);
         writecell([Xtrain,num2cell(Ytrain)],'train.xlsx','Sheet',sheet)
-
-        if ~isempty(testOrthologs)
-        [~,sigma_delta_scores] = indigo_orthology(labels, testOrthologs, ...
-                                 sigma_delta_scores, indigo_model); 
-        end
         
         if modelType == 1
             [train_interactions, train_scores, labels, indigo_model,...
@@ -254,7 +262,16 @@ elseif strcmp(valMethod,'cv_onself')
              annotation_file,chemogenomics_file,1,phenotype_data,phenotype_labels,col);
         end
         
-
+        if ~isempty(testOrthologs)
+        [~,sigma_delta_scores] = indigo_orthology(labels, testOrthologs, ...
+                                 sigma_delta_scores, indigo_model); 
+        end
+        
+        tic
+        indigo_model = fitrensemble(single(sigma_delta_scores_all'), ...
+                   single(interaction_scores_all),'Method','Bag');
+        toc
+        
         %Predict and evaluate
         predictStep();    
     end

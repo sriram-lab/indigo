@@ -17,7 +17,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % converting gene ids to standard ids
 load ecoli_annotation_data1 genenames_array      genenames_array1    genenames_bnums
-
+%%Should try to pull gene in real time from a database so genenames array
+%%is up to date
 clear plist
 plist = cell(size(probelist));
 for i = 1:length(probelist)

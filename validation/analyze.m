@@ -78,9 +78,9 @@ overviewTable.Properties.RowNames = varnames;
 overviewTable.Properties.VariableNames = {'Value'};
 
 if indigoSummary.standardized == 0
-    resultsFile = strcat('results/current/','ecoli-model-final/cv/',dataName,sprintf('_%s.xlsx', indigoSummary.valMethod));
+    resultsFile = strcat('results/','mtb-model/bliss/cv/',dataName,sprintf('_%s.xlsx', indigoSummary.valMethod));
 else
-    resultsFile = strcat('results/current/','ecoli-model-final/cv-z/',dataName,sprintf('_%s_z.xlsx', indigoSummary.valMethod));
+    resultsFile = strcat('results/','mtb-model/bliss/cv-z/',dataName,sprintf('_%s_z.xlsx', indigoSummary.valMethod));
 end
 
 %Final output!
@@ -131,112 +131,112 @@ function getStats(Ytrain, Ytest, Ypred, mode)
 %     meanGuessAccuracy = mean(accuracyGuess);
 %     [~,p] = ttest2(accuracy,accuracyGuess);
 %     
-    if mode == 1
-        figure(1)
-        sgtitle(figure(1),sprintf("ROC Curves for %s using INDIGO", ...
-        dataName),'Interpreter','none')
-        subplot(ceil(indigoSummary.K/2),floor(indigoSummary.K/2),i)    %specific to subset
-%         subplot(2,1,i)
-    else
-        sgtitle(figure(4),sprintf("Overall results for %s using INDIGO", ...
-        dataName),'Interpreter','none')
-        figure(4)
-        subplot(3,1,1)
-
-    end
-%     
-    labels = {};  
+%     if mode == 1
+%         figure(1)
+%         sgtitle(figure(1),sprintf("ROC Curves for %s using INDIGO", ...
+%         dataName),'Interpreter','none')
+%         subplot(ceil(indigoSummary.K/2),floor(indigoSummary.K/2),i)    %specific to subset
+% %         subplot(2,1,i)
+%     else
+%         sgtitle(figure(4),sprintf("Overall results for %s using INDIGO", ...
+%         dataName),'Interpreter','none')
+%         figure(4)
+%         subplot(3,1,1)
+% 
+%     end
+% %     
+%     labels = {};  
     if sum(Ytest == -1) > 0  && (sum(Ytest == 0) > 0 || sum(Ytest == 1) > 0)
-        %ROC Curve for synergy
+%         %ROC Curve for synergy
         [X_synergy,Y_synergy,T_synergy,AUC_synergy] = perfcurve(Ytest,Ypred,-1);
-        plot(X_synergy,Y_synergy)
-        labels{end+1} = 'synergy';
+%         plot(X_synergy,Y_synergy)
+%         labels{end+1} = 'synergy';
     else
         AUC_synergy = nan;
     end
-    hold on
+% %     hold on
     if sum(Ytest == 1) > 0 && (sum(Ytest == 0) > 0 || sum(Ytest == -1) > 0)
-        %ROC Curve for antagonism
+% %         %ROC Curve for antagonism
         [X_antagonism,Y_antagonism,T_antagonism,AUC_antagonism] = perfcurve(Ytest,Ypred,1);
-        plot(X_antagonism,Y_antagonism)
-        labels{end+1} = 'antagonism';
+%         plot(X_antagonism,Y_antagonism)
+%         labels{end+1} = 'antagonism';
     else
         AUC_antagonism = nan;
     end
-    hold off
-    
-    legend(labels,'Location','southeast')
-    xlabel('False positive rate') 
-    ylabel('True positive rate')
-   
-    if mode == 1
-        title(sprintf('Subset %d',i))
-    else
-        title('Overall ROC curve')
-    end
-    
-    if mode == 1
-        figure(2)
-        sgtitle(figure(2),sprintf("Confusion Matrices for %s using INDIGO", ...
-        dataName),'Interpreter','none')
-        subplot(ceil(indigoSummary.K/2),floor(indigoSummary.K/2),i)     %specific to subset
-%         subplot(2,1,i)
-    else
-        figure(4)
-        subplot(3,1,2)
-    end
-    C = confusionmat(Ytest,Ypred);
-    tempLabels = {};
-    if sum(Ytest == -1) > 0 || sum(Ypred == -1) > 0
-        tempLabels{end+1} = 'synergistic';
-    end
-    if sum(Ytest == 0) > 0 || sum(Ypred == 0) > 0
-        tempLabels{end+1} = 'neutral';
-    end
-    if sum(Ytest == 1) > 0 || sum(Ypred == 1) > 0
-        tempLabels{end+1}  = 'antagonistic';
-    end
-    cats = categorical(tempLabels);
-    confusionLabels = reordercats(cats,tempLabels);
-    cm = confusionchart(C,confusionLabels);
-    cm.RowSummary = 'total-normalized';
-    cm.ColumnSummary = 'total-normalized';
-    if mode == 1
-        cm.Title = sprintf('Subset %d',i);   %specific to subset
-    else
-        cm.Title = 'Overall Confusion Matrix';
-    end
-    
-    %Scatterplot with line of best fit
-    %Rank sorted - larger rank means bigger value
-    [Ytest_sorted,I_test] = sort(Ytest);
-    Ytest_rank = zeros(1,length(Ytest));
-    Ytest_rank(I_test) = 1:length(Ytest);
-    [Ypred_sorted,I_pred] = sort(Ypred);
-    Ypred_rank = zeros(1,length(Ytest));
-    Ypred_rank(I_pred) = 1:length(Ypred);
-    
-    if mode == 1
-        figure(3)
-        sgtitle(figure(3),sprintf("Predicted vs experimental scores (rank sorted) for %s using INDIGO", ...
-        dataName),'Interpreter','none')
-        subplot(ceil(indigoSummary.K/2),floor(indigoSummary.K/2),i) %specific to subset
-%         subplot(2,1,i)
-    else
-        figure(4)
-        subplot(3,1,3)
-    end
-    scatter(Ytest_rank,Ypred_rank,24,'filled')
-    h = lsline; h.Color = 'red'; 
-    h.DisplayName = sprintf('R = %.2f', R);
-    if mode == 1
-        title(sprintf('Subset %d',i))
-    else
-        title('Overall scatter plot');
-    end
-    xlabel('Experiment - Rank sorted')
-    ylabel('Prediction - Rank sorted')
-    legend(h,'Location','northwest')
+%     hold off
+%     
+%     legend(labels,'Location','southeast')
+%     xlabel('False positive rate') 
+%     ylabel('True positive rate')
+%    
+%     if mode == 1
+%         title(sprintf('Subset %d',i))
+%     else
+%         title('Overall ROC curve')
+%     end
+%     
+%     if mode == 1
+%         figure(2)
+%         sgtitle(figure(2),sprintf("Confusion Matrices for %s using INDIGO", ...
+%         dataName),'Interpreter','none')
+%         subplot(ceil(indigoSummary.K/2),floor(indigoSummary.K/2),i)     %specific to subset
+% %         subplot(2,1,i)
+%     else
+%         figure(4)
+%         subplot(3,1,2)
+%     end
+%     C = confusionmat(Ytest,Ypred);
+%     tempLabels = {};
+%     if sum(Ytest == -1) > 0 || sum(Ypred == -1) > 0
+%         tempLabels{end+1} = 'synergistic';
+%     end
+%     if sum(Ytest == 0) > 0 || sum(Ypred == 0) > 0
+%         tempLabels{end+1} = 'neutral';
+%     end
+%     if sum(Ytest == 1) > 0 || sum(Ypred == 1) > 0
+%         tempLabels{end+1}  = 'antagonistic';
+%     end
+%     cats = categorical(tempLabels);
+%     confusionLabels = reordercats(cats,tempLabels);
+%     cm = confusionchart(C,confusionLabels);
+%     cm.RowSummary = 'total-normalized';
+%     cm.ColumnSummary = 'total-normalized';
+%     if mode == 1
+%         cm.Title = sprintf('Subset %d',i);   %specific to subset
+%     else
+%         cm.Title = 'Overall Confusion Matrix';
+%     end
+% %     
+% %     %Scatterplot with line of best fit
+% %     %Rank sorted - larger rank means bigger value
+%     [Ytest_sorted,I_test] = sort(Ytest);
+%     Ytest_rank = zeros(1,length(Ytest));
+%     Ytest_rank(I_test) = 1:length(Ytest);
+%     [Ypred_sorted,I_pred] = sort(Ypred);
+%     Ypred_rank = zeros(1,length(Ytest));
+%     Ypred_rank(I_pred) = 1:length(Ypred);
+%     
+%     if mode == 1
+%         figure(3)
+%         sgtitle(figure(3),sprintf("Predicted vs experimental scores (rank sorted) for %s using INDIGO", ...
+%         dataName),'Interpreter','none')
+%         subplot(ceil(indigoSummary.K/2),floor(indigoSummary.K/2),i) %specific to subset
+% %         subplot(2,1,i)
+%     else
+%         figure(4)
+%         subplot(3,1,3)
+%     end
+%     scatter(Ytest_rank,Ypred_rank,24,'filled')
+%     h = lsline; h.Color = 'red'; 
+%     h.DisplayName = sprintf('R = %.2f', R);
+%     if mode == 1
+%         title(sprintf('Subset %d',i))
+%     else
+%         title('Overall scatter plot');
+%     end
+%     xlabel('Experiment - Rank sorted')
+%     ylabel('Prediction - Rank sorted')
+%     legend(h,'Location','northwest')
     
     if mode == 1
         stats.interactionCount(i,1) = interactionCount;

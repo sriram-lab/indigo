@@ -5,6 +5,10 @@ INDIGO is a random forest model that makes drug interaction predictions using dr
 
 I've modified INDIGO so that it can be trained on data from multiple studies representing multiple bacterial strains/species. 
 
+Link to google drive folder containing data and results:
+https://drive.google.com/drive/folders/13nP4fNvrQv_s-81Li1-Nx59m8m2U8zRT?usp=sharing
+
+
 Repository contains following folders:
 
 1. `core`
@@ -15,7 +19,7 @@ Repository contains following folders:
 
 Code required to run INDIGO model is in `validation`. Explanation of how to use code is below.
 
-**Code:** 
+**Code:** https://drive.google.com/drive/folders/13nP4fNvrQv_s-81Li1-Nx59m8m2U8zRT?usp=sharing
 
 The following are different functions that can be used.
 
