@@ -61,7 +61,9 @@ if strcmp(standardize,'standardized')
     indigoSummary.standardized = 1;
 end
 
-[scores,interactions] = xlsread(testData,sheet);
+data = readcell(testData,'Sheet',sheet);
+scores = cell2mat(data(:,end));
+interactions = data(:,1:end-1);
 
 %get orthologs for test file
 [testOrthologs,orthologyFile] = get_orthologs(testData,modelType);
@@ -104,7 +106,9 @@ if ~isempty(trainingData)
             end
             
         else
-            [train_scores, train_interactions] = xlsread(trainingData{i},sheet);
+            data = readcell(trainingData{i},'Sheet',sheet);
+            train_scores = cell2mat(data(:,end));
+            train_interactions = data(:,1:end-1);
             
             if modelType == 1
                 [~,~,~,sigma_delta_scores] = indigo_predict(indigo_model,train_interactions, ...

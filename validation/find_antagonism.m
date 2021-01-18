@@ -1,6 +1,8 @@
 function [antagonism_scores_ranked, antagonism_interactions_ranked] = find_antagonism(filename)
 
-[scores,interactions] = xlsread(filename);
+data = readcell(filename);
+scores = cell2mat(data(:,end));
+interactions = data(:,1:end-1);
 [~,antagonism] = cutoffs(filename);
 
 antagonism_interactions = interactions(scores > antagonism,:);

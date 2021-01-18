@@ -14,7 +14,7 @@ idx = find(strcmp(filename, data_table.Filename));
 orthologyFile = orthology{idx};
 
 if ~isempty(orthologyFile)
-    [~,orthologs] = xlsread(orthologyFile);
+    orthologs = readcell(orthologyFile);
 else
     orthologs = '';
     

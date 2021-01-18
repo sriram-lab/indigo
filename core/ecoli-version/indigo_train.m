@@ -11,14 +11,16 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 1 a load drug interaction data
 if ~exist('interaction_scores','var') || isempty(interaction_scores)
-[interaction_scores, interaction_pairs] = xlsread(interaction_filename,sheet);
+data = readcell(interaction_filename,'Sheet',sheet);
+interaction_scores = cell2mat(data(:,end));
+interaction_pairs = data(:,1:end-1);
 end
 drugs_all = unique(interaction_pairs);
 %disp(drugs_all)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %2a. match drugs with identifiers in chemogenomic data. 
 %  convert  and match drug interaction data labels with chemical genetic data labels
-[num, txt] = xlsread(annotation_filename);
+txt = readcell(annotation_filename);
 [drugxn_id, chemgen_id] = deal(txt(:,1),txt(:,2));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 drugnames_cell = drugs_all;

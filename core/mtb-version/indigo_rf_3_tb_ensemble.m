@@ -1,4 +1,4 @@
-function [testinteractions_scores, indigo_model, sigma_delta_scores]  = indigo_rf_3_tb_bagger(traindrugs,trainchemgen, train_interactions, trainxnscores, testdrugs,testchemgen, test_interactions,indigo_mode,indigo_model,Ntype)
+function [testinteractions_scores, indigo_model, sigma_delta_scores]  = indigo_rf_3_tb_ensemble(traindrugs,trainchemgen, train_interactions, trainxnscores, testdrugs,testchemgen, test_interactions,indigo_mode,indigo_model,Ntype)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % check if it is training mode (1) or testing mode (2)

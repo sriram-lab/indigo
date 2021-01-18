@@ -1,6 +1,8 @@
 function [synergy_scores_ranked, synergy_interactions_ranked] = find_synergy(filename)
 
-[scores,interactions] = xlsread(filename);
+data = readcell(filename);
+scores = cell2mat(data(:,end));
+interactions = data(:,1:end-1);
 synergy = cutoffs(filename);
 
 synergy_interactions = interactions(scores < synergy,:);

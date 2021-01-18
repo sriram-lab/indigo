@@ -17,15 +17,19 @@ sharedInteractions = cell(length(files));
 
 %it doesn't matter whether A or B is bigger file
 for i = 1:length(files)
-    A_label = sprintf('%s score',names{i});   
-    [A_scores, A_drugs] = xlsread(files{i});
+    A_label = sprintf('%s score',names{i}); 
+    data = readcell(files{i});
+    A_scores = cell2mat(data(:,end));
+    A_drugs = data(:,1:end-1);
     A_drugs = string(A_drugs); 
     for j = 1:length(files)    
         if j > i    %so that you don't get repeat comparisons
             %remove all rows that have more than 2 drugs
             B_label = sprintf('%s score',names{j});
-            [B_scores, B_drugs] = xlsread(files{j});
-            B_drugs = string(B_drugs);
+            data = readcell(files{j});
+            B_scores = cell2mat(data(:,end));
+            B_drugs = data(:,1:end-1);
+            B_drugs = string(B_drugs); 
             [Lia,Locb] = ismember(A_drugs, B_drugs, 'rows','legacy');
             A_scores_final = A_scores(Lia);
             Locb = nonzeros(Locb); 

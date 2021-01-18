@@ -21,9 +21,10 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %2a. match drugs with identifiers in chemogenomic data. 
 %  convert  and match drug interaction data labels with chemical genetic data labels
- [num, txt] = xlsread(annotation_filename);
- [drugxn_id, chemgen_id] = deal(txt(:,1),txt(:,2));
- drugxn_id1 = sort(drugxn_id);
+txt = readcell(annotation_filename);
+
+[drugxn_id, chemgen_id] = deal(txt(:,1),txt(:,2));
+drugxn_id1 = sort(drugxn_id);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if input_type == 1
     drugnames_cell = testdrugs;

@@ -7,7 +7,12 @@ summary = struct;
 
 [synergy,antagonism] = cutoffs(filename);
 
-[scores,drugs] = xlsread(filename);
+data = readcell(filename);
+scores = cell2mat(data(:,end));
+drugs = data(:,1:end-1);
+
+ecoli_orthologs = get_orthologs(filename,1);
+mtb_orthologs = get_orthologs(filename,2);
 
 %Descriptive statistics
 summary.min = min(scores);
@@ -20,6 +25,8 @@ summary.interactionCount = length(scores);
 summary.synergyCount = sum((scores <= synergy));
 summary.antagonismCount = sum((scores >= antagonism));
 summary.neutralCount = sum((scores > synergy & scores < antagonism));
+summary.ecoliOrthologCount = length(ecoli_orthologs);
+summary.mtbOrthologCount = length(mtb_orthologs);
 
 %Anderson Darling Normality test, if h = 1 and p < 0.05, then scores is not
 %normal
