@@ -1,59 +1,99 @@
-function [train_interactions, trainxnscores,phenotype_labels, indigo_model, sigma_delta_scores,conditions] = indigo_train_tb(interaction_filename,sheet,annotation_filename,chemogenomics_filename,z,phenotype_data, phenotype_labels, conditions,interaction_scores,interaction_pairs)
-% [train_interactions, trainxnscores,phenotype_labels, indigo_model, sigma_delta_scores,conditions] = indigo_train(interaction_filename,annotation_filename,chemogenomics_filename,z)
-%%%% steps%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 1 load drug interaction data
-% 2. convert  and match drug interaction data labels with chemogenomic data
-% 3 input to indigo and train model
-%%%%%%%%%%% input processing %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ~exist('z','var') || isempty(z)
-    z = 2;
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 1 a load drug interaction data
-if ~exist('interaction_scores','var') || isempty(interaction_scores)
-data = readcell(interaction_filename,'Sheet',sheet);
-interaction_scores = cell2mat(data(:,end));
-interaction_pairs = data(:,1:end-1);
-end
-drugs_all = unique(interaction_pairs);
-%disp(drugs_all)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%2a. match drugs with identifiers in chemogenomic data. 
-%  convert  and match drug interaction data labels with chemical genetic data labels
- txt = readcell(annotation_filename);
- [drugxn_id, chemgen_id] = deal(txt(:,1),txt(:,2));
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-drugnames_cell = drugs_all;
-for i = 1:length(drugxn_id)
-    drugnames_cell (ismember(drugnames_cell,drugxn_id(i))) = chemgen_id(i);
-end
+function [train_interactions, trainxnscores, phenotype_labels, ...
+    indigo_model, sigma_delta_scores,conditions] = ...
+        indigo_train_tb(interaction_filename,sheet,annotation_filename, ...
+        chemogenomics_filename,z,phenotype_data, phenotype_labels, ...
+        conditions,interaction_scores,interaction_pairs)
 
-drugpairsname_cell = interaction_pairs;
-for i = 1:length(drugxn_id)
-    drugpairsname_cell(ismember(drugpairsname_cell,drugxn_id(i))) = chemgen_id(i);
-end
-drug_abb_chem = drugs_all(~ismember(drugs_all,drugnames_cell)); %these drugs have chem gen data
-% disp(drug_abb_chem)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%2b. load and match with chemical genetic data
-if ~exist('phenotype_data','var') || isempty(phenotype_data)
-[phenotype_data, phenotype_labels, conditions] = process_chemgen_tb(chemogenomics_filename,z);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-ix = ismember(drugpairsname_cell,conditions); 
-ix = (ix(:,1) & ix(:,2)); 
-train_interactions = drugpairsname_cell(ix,:); %% these xns have chemogenomic data
-trainxnscores = interaction_scores(ix);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-traindrugs = unique(train_interactions(:));
-traindrugs = traindrugs(~cellfun('isempty',traindrugs));  %accounts for empty cells and removes them
-traindrugs(ismember(traindrugs,{''})) = '';
-[ix, pos] = ismember(traindrugs,conditions); 
-trainchemgen = phenotype_data(:,pos);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %{ 
+    DESCRIPTION
+    This function constructs an INDIGO model using regression-based
+    random forests.
+    
+    STEPS
+    1. Input processing
+    2. Convert and match interaction labels with chemogenomic data
+    3. Filter out interactions without chemogenomic data
+    4. Define inputs to INDIGO and train model
+    
+    Author: Murat Cokol
+    Created: October 23, 2018
+    Updates: August 27, 2020 (Carolina H. Chung)
+             January 18, 2021 (David Chang)
 
-%[testinteractions_scores, indigo_model, sigma_delta_scores]  = indigo_rf(traindrugs,trainchemgen, train_interactions, trainxnscores, [],[], [],1,[]);
-[testinteractions_scores, indigo_model, sigma_delta_scores]  = indigo_rf_3_tb_ensemble(traindrugs,trainchemgen, train_interactions, trainxnscores, [],[], [],1,[]);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- 
+    I/O
+    
+    REQUIRED INPUTS: 
+        1. interaction_filename:    filename for drug interactions
+        2. sheet:                   sheet name for interaction_filename
+        3. annotation_filename:     filename for matching drug names to 
+                                    chemogenomic condition names
+        4. chemogenomics_filename:  filename for chemogenomic data
+    OPTIONAL INPUTS: 
+        1. z:                   threshold value to define significant 
+                                effect on fitness (default: z = 2)
+        2. phenotype_data:      binary matrix defining sensitive and 
+                                resistant phenotypes
+        3. phenotype_labels:    labels (i.e. genes) for phenotype data
+        4. conditions:          list of conditions (i.e. treatments)
+        5. interaction_scores:  numerical array of drug interaction scores
+        6. interaction_pairs:   cell array of interaction pair names
+
+    OUTPUTS:
+        1. train_interactions:  interaction pairs used for model training
+                                (i.e. chemogenomic data available)
+        2. trainxnscores:       interaction scores corresponding to 
+                                train_interactions
+        3. phenotype_labels:    labels (i.e. genes) for phenotype data
+        4. magenta_model:       trained INDIGO model 
+        5. sigma_delta_scores:  numerical matrix of combination profiles
+        6. conditions:          list of conditions (i.e. treatments) in 
+                                chemogenomic data
+    %}
+    
+    %% INPUT PROCESSING
+    if ~exist('interaction_scores','var') || isempty(interaction_scores)
+        data = readcell(interaction_filename,'Sheet',sheet);
+        interaction_scores = cell2mat(data(:,end));
+        interaction_pairs = data(:,1:end-1);
+    end
+    drugs_all = unique(interaction_pairs);
+    if ~exist('z','var') || isempty(z)
+        z = 2;
+    end
+    if ~exist('phenotype_data','var') || isempty(phenotype_data)
+        [phenotype_data, phenotype_labels, conditions] = ...
+            process_chemgen_tb(chemogenomics_filename,z);
+    end
+
+    %% CONVERT AND MATCH INTERACTION LABELS WITH CHEMOGENOMIC DATA 
+    opts = detectImportOptions(annotation_filename,"ReadVariableNames",false);
+    opts = setvaropts(opts,strcmp(opts.VariableTypes,'char'),'WhitespaceRule','preserve');
+    txt = readcell(annotation_filename,opts);
+    [drugxn_id, chemgen_id] = deal(txt(:,1),txt(:,2));
+    drugnames_cell = drugs_all;
+    for i = 1:length(drugxn_id)
+        drugnames_cell (ismember(drugnames_cell, ...
+            drugxn_id(i))) = chemgen_id(i);
+    end
+    drugpairsname_cell = interaction_pairs;
+    for i = 1:length(drugxn_id)
+        drugpairsname_cell(ismember(drugpairsname_cell, ...
+            drugxn_id(i))) = chemgen_id(i);
+    end
+    
+    %% FILTER OUT INTERACTIONS WITHOUT CHEMOGENOMIC DATA 
+    ix = ismember(drugpairsname_cell,conditions); 
+    ix = (ix(:,1) & ix(:,2)); 
+    train_interactions = drugpairsname_cell(ix,:);
+    trainxnscores = interaction_scores(ix);
+    
+    %% DEFINE INPUTS FOR INDIGO AND TRAIN MODEL
+    traindrugs = unique(train_interactions(:));
+    traindrugs = traindrugs(~cellfun('isempty',traindrugs));
+    [~, pos] = ismember(traindrugs,conditions); 
+    trainchemgen = phenotype_data(:,pos);
+    [~, indigo_model, sigma_delta_scores] = ...
+        indigo_rf_3_tb_ensemble(traindrugs, trainchemgen, train_interactions, ...
+        trainxnscores, [],[], [],1,[]);
+
 end

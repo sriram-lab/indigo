@@ -1,6 +1,6 @@
 function [orthologs,orthologyFile] = get_orthologs(filename,modelType)
 
-data_table = readtable('all_data.xlsx');
+data_table = readtable('all_data_fu.xlsx');
 
 if modelType == 1
     orthology = data_table.EcoliOrthologs;

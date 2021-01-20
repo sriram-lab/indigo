@@ -1,4 +1,7 @@
 function [summary,drugList] = dataExplore(filename)
+
+fprintf(sprintf('Exploring data for %s\n',filename));
+
 figure
 % filename = strcat("/indigoData/",filename);
 dataName = erase(filename,'.xlsx');

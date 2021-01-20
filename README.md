@@ -1,4 +1,4 @@
-# indigo
+# INDIGO
 This is a readme for indigo repository!
 
 INDIGO is a random forest model that makes drug interaction predictions using drug chemogenomics/transcriptomics and drug interaction data. It runs in MATLAB.
