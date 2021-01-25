@@ -71,6 +71,8 @@ function [test_interactions, testinteractions_scores, ...
     end
 
     %% CONVERT AND MATCH INTERACTION LABELS WITH CHEMOGENOMIC DATA
+    
+    % Preserve any trailing whitespace when reading in data
     opts = detectImportOptions(annotation_filename,"ReadVariableNames",false);
     opts = setvaropts(opts,strcmp(opts.VariableTypes,'char'),'WhitespaceRule','preserve');
     txt = readcell(annotation_filename,opts);
@@ -97,15 +99,15 @@ function [test_interactions, testinteractions_scores, ...
     end
     
     %% FILTER OUT INTERACTIONS WITHOUT CHEMOGENOMIC DATA
-    ix = ismember(drugpairsname_cell,conditions); 
-    ix = (ix(:,1) & ix(:,2)); 
-    test_interactions = drugpairsname_cell(ix,:);   %% these xns have chem gen data
-    testdrugs = unique(drugpairsname_cell(:));
-    testdrugs = testdrugs(~cellfun('isempty',testdrugs));   %accounts for empty cells and removes them
+    ix = ismember(drugpairsname_cell, conditions); 
+    ix = (sum(~cellfun(@isempty, drugpairsname_cell), 2)) == sum(ix, 2);
+    test_interactions = drugpairsname_cell(ix,:); 
+    testdrugs = unique(test_interactions); 
+    testdrugs(cellfun(@isempty, testdrugs)) = []; 
     
     %% DEFINE INPUTS FOR INDIGO AND GENERATE PREDICTIONS
-    [~, pos] = ismember(testdrugs,conditions);
-    testchemgen = phenotype_data(:,pos);
+    [~, pos] = ismember(testdrugs, conditions);
+    testchemgen = phenotype_data(:,pos(logical(pos)));
     [testinteractions_scores, indigo_model, sigma_delta_scores] = ...
         indigo_rf_3_tb_ensemble([], [], [], [], testdrugs, testchemgen, ...
         test_interactions, 2, indigo_model);

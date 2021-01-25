@@ -61,20 +61,21 @@ function [phenotype_data, phenotype_labels, conditions] = process_chemgen(fname,
     [ix, pos] =ismember(upper(plist),upper(genenames_array));
     plist_bnums = plist;
     plist_bnums(ix) = genenames_bnums(pos(ix));
+    plist_bnums = matlab.lang.makeUniqueStrings(plist_bnums);
     
-    %% TRANSFORM DATA
-    for i = 1:324
-        te = plist_bnums(phenotype_num(:,i) < -z);
-        cell_z1_list_t(1:length(te),i) = te;
-        lte(i) = length(te);
-    end
-    cell_z1_list_t = regexprep(cell_z1_list_t,'''','');
-    phenotype_labels = unique(cell_z1_list_t (~cellfun(@isempty, cell_z1_list_t)));
+   %% TRANSFORM DATA
+    % Sensitive strains
+    sensitive_phenotype_num = phenotype_num < -z; 
+    idx = sum(sensitive_phenotype_num, 2) == 0;
+    sensitive_data = sensitive_phenotype_num(~idx,:);
+    sensitive_labels = plist_bnums(~idx);
+    % Resistant strains
+    resistant_phenotype_num = phenotype_num > z; 
+    idx = sum(resistant_phenotype_num,2) == 0;
+    resistant_data = resistant_phenotype_num(~idx,:);
+    resistant_labels = plist_bnums(~idx);
 
-    clear nicholslistix_t
-    for i = 1:324
-        cell_list_column = cell_z1_list_t(:,i);
-        nicholslistix_t(:,i) = ismember(phenotype_labels,cell_list_column(~cellfun('isempty',cell_list_column)));
-    end
-    phenotype_data = nicholslistix_t;
+    %% DEFINE OUTPUT PHENOTYPE VARIABLES
+    phenotype_data = [sensitive_data; resistant_data];
+    phenotype_labels = [sensitive_labels; resistant_labels];
 end

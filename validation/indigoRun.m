@@ -1,46 +1,76 @@
-function indigoSummary = indigoRun(testData,trainingData,valMethod,K,standardize,modelType,input_type)
+function indigoSummary = indigoRun(testData, trainingData, valMethod, ...
+    K, standardize,modelType,input_type, scoring)
 arguments
     testData char
     trainingData = ''
-    valMethod char {mustBeMember(valMethod,{'holdout_onself', 'cv_onself', 'independent', 'cv'})} = 'holdout_onself'
+    valMethod char {mustBeMember(valMethod,{'Kfold', 'holdout', ...
+                    'holdout_onself', 'Kfold_onself', ...
+                    'independent'})} = 'Kfold'
     K {mustBeInteger} = 5
-    standardize char {mustBeMember(standardize,{'','standardized'})}= ''
-    modelType {mustBeInteger} = 1;
+    standardize char {mustBeMember(standardize,{'','z_score'})} = ''
+    modelType char {mustBeMember(modelType,{'ecoli_model','mtb_model'})} = 'ecoli_model';
     input_type {mustBeInteger} = 2;
+    scoring char {mustBeMember(scoring,{'bliss', 'loewe', ''})} = ''
 end
 
-%[indigoSummary] = indigoRun(testData,trainingData,valMethod,K, standardize,input_type)
-% This function runs indigo and returns a summary of the results
-%required argument:
-%testData - can be list of drugs (1) or drug combinations (2)
-%optional arguments:
-%trainingData - single file or cell array of files
-%valMethod - name-value argument, options are holdout_onself, cv_onself, independent, cv
-%K - fold parameter for K-fold cross validation, default = 5
-%standardize - whether data will be standardized or not
-%input type, 1 (list of drugs), 2 (drug combos). For 1, use independent
-%validation
-%modelType 1 == ecoli, 2 == mtb
+    %{
+    DESCRIPTION
 
-%scores = drug interaction scores
-%interactions = drug pairs
-%sigma_delta_scores = sigma delta scores
+    This function runs INDIGO and returns a model with prediction results.
 
-%Xtrain, Xtest, Ytrain, Ytest - independent/dependent variables during
-%holdout or cross validation 
+    STEPS
+    1. Input processing for test and training data.
+    2. Format interaction scores and sigma delta scores matrices.
+    3. Modify sigma delta scores based on orthology.
+    4. Build random forest INDIGO model.
+    5. Make predictions.
 
-%Initialize output indigoSummary
+    Author: David Chang
+    Created: January 23, 2021
+
+    I/O
+    
+    REQUIRED INPUTS:
+      1. testData:          List of drugs (1) or drug interactions with 
+                            scores (2) 
+
+    OPTIONAL INPUTS:
+      2. trainingData:      Drug interaction data, can be from multiple
+                            species. If model is E. coli, first file must 
+                            be E. coli data. If model is M. tb, first file 
+                            must be either m. tb or e. coli. Can be single
+                            file string or cell array of files.
+      3. valMethod:         Validation method, can be the following options:
+                                1. holdout_onself: Only use test data
+                                2. cv_onself: Only use test data
+                                3. independent: Leave all test data out of
+                                training
+                                4. cv: K-fold cross validation
+      4. K:                 Cross-validation parameter 
+                            (default K = 5 for Kfold cross-validation)
+      5. standardize:       To get zscores or not
+      6. modelType:         1 for E. coli model, 2 for M. tb model. Switches
+                            training data and chemogenomics/transcriptomics 
+                            data that is used
+      7. input_type:        1 for drug list, 2 for drug combinations
+      8. scoring            Interaction scoring method. Can be Bliss or
+                            Loewe, default is none ('') which means model
+                            uses data with both scoring methods.
+    OUTPUTS:
+      1. indigoSummary:     INDIGO model, predicted scores and input data
+    %}
+
+% Initialize output indigoSummary
 indigoSummary = struct;
 
-if modelType == 1
-    %ecoli chemogenomics data
-    indigoSummary.modelType = 1;
+indigoSummary.modelType = modelType;
+if strcmp(modelType, 'ecoli_model')
+    %E. coli chemogenomics data
     annotation_file = 'identifiers_match.xlsx';
     chemogenomics_file = 'ecoli_phenotype_data_cell.xlsx';
    
-elseif modelType == 2
-    %mtb chemogenomics data, scripts have _tb at end
-    indigoSummary.modelType = 2;
+elseif strcmp(modelType, 'mtb_model')
+    % M. tb chemogenomics data, scripts have _tb at end
     annotation_file = 'identifiers_match_tb.xlsx';
     chemogenomics_file = [];
     file = 'averaged_data_new.mat';
@@ -49,31 +79,30 @@ elseif modelType == 2
                          S.mtb_expression_database_col_ids, ...
                          S.mtb_expression_database_row_ids);
     [phenotype_data, phenotype_labels] = process_transcriptome_tb(normData,row,col);
-
 end
+
+indigoSummary.scoring = scoring;
 
 indigoSummary.testData = testData;
 
-sheet = 1;  %for non-standardized data
-indigoSummary.standardized = 0;
-if strcmp(standardize,'standardized')
-    sheet = 2;  %for z score data
-    indigoSummary.standardized = 1;
-end
+% Read in the test data
+% Use readtable to handle missing values as {0x0 char}
+data = readtable(testData,"ReadVariableNames",false);
+scores = data{:,end};
+interactions = data{:,1:end-1};
 
-data = readcell(testData,'Sheet',sheet);
-scores = cell2mat(data(:,end));
-interactions = data(:,1:end-1);
+indigoSummary.standardized = standardize;
+if strcmp(standardize,'z_score')
+    scores = zscores(scores);
+end
 
 %get orthologs for test file
-[testOrthologs,orthologyFile] = get_orthologs(testData,modelType);
+testOrthologs = get_orthologs(testData,modelType);
 
-if ~isempty(testOrthologs)
-    indigoSummary.orthology = orthologyFile;
-end
-
-
-%setting up training data
+%{ 
+COMBINE TRAINING DATA FROM DIFFERENT DATA FILES TO GET OVERALL SIGMA DELTA 
+SCORE MATRIX (X) AND INTERACTION SCORE MATRIX (Y) TO BUILD THE MODEL.
+%}
 if ~isempty(trainingData)
     indigoSummary.trainingData = trainingData;
     interactions_all = [];
@@ -89,13 +118,13 @@ if ~isempty(trainingData)
         fprintf(sprintf('Adding %s to training data\n',trainingData{i}))
         if i == 1
             %Train first
-            if modelType == 1
+            if strcmp(modelType, 'ecoli_model')
                 [train_interactions, train_scores, labels, indigo_model,...
-                 sigma_delta_scores, conditions] = indigo_train(trainingData{i},sheet, ...
+                 sigma_delta_scores, ~] = indigo_train(trainingData{i},standardize, ...
                  annotation_file,chemogenomics_file);
-            elseif modelType == 2
+            elseif strcmp(modelType, 'mtb_model')
                 [train_interactions, train_scores, labels, indigo_model,...
-                 sigma_delta_scores, conditions] = indigo_train_tb(trainingData{i},sheet, ...
+                 sigma_delta_scores, ~] = indigo_train_tb(trainingData{i},standardize, ...
                  annotation_file,chemogenomics_file,1,phenotype_data,phenotype_labels,col);
             end
             trainOrthologs = get_orthologs(trainingData{i},modelType);       
@@ -106,14 +135,19 @@ if ~isempty(trainingData)
             end
             
         else
-            data = readcell(trainingData{i},'Sheet',sheet);
-            train_scores = cell2mat(data(:,end));
-            train_interactions = data(:,1:end-1);
+            % Use readtable to handle missing values as {0x0 char}
+            data = readtable(trainingData{i}, "ReadVariableNames", false);
+            train_scores = data{:,end};
+            train_interactions = data{:,1:end-1};
             
-            if modelType == 1
+            if strcmp(standardize, 'standardized')
+                train_scores = zscore(train_scores);
+            end
+            
+            if strcmp(modelType, 'ecoli_model')
                 [~,~,~,sigma_delta_scores] = indigo_predict(indigo_model,train_interactions, ...
                   input_type,annotation_file,chemogenomics_file);
-            elseif modelType == 2
+            elseif strcmp(modelType,'mtb_model')
                 [~,~,~,sigma_delta_scores] = indigo_predict_tb(indigo_model,train_interactions, ...
                  input_type,annotation_file,chemogenomics_file, 1, phenotype_data, phenotype_labels, col);
             end
@@ -127,7 +161,8 @@ if ~isempty(trainingData)
             
         end
         
-        %Training data --> fitrensemble
+        % Adjusting # of columns of training data matrix so that all the 
+        % different training data can be combined before building the model
         if size(interactions_all,2) > size(train_interactions,2)
             num_add = size(interactions_all,2) - size(train_interactions,2);
             empty_array = repmat("",length(train_interactions),num_add);
@@ -138,66 +173,67 @@ if ~isempty(trainingData)
             interactions_all = [interactions_all empty_array];
         end
         
-        interactions_all = [interactions_all; train_interactions];
         interaction_scores_all = [interaction_scores_all; train_scores];
-        sigma_delta_scores_all = [sigma_delta_scores_all, sigma_delta_scores];    
+        sigma_delta_scores_all = [sigma_delta_scores_all, sigma_delta_scores]; 
+        interactions_all = [interactions_all; train_interactions];
     end
 end
-         
+
+%% BUILD MODEL AND MAKE PREDICTIONS WITH VALIDATION METHOD OF YOUR CHOOSING
 indigoSummary.valMethod = valMethod;
 
 if strcmp(valMethod,'holdout_onself')
-    %Only use data from test file
-    %Holdout validation
     i = 1;
-    [train,test] = crossvalind('HoldOut',length(interactions),0.2); %20% of data is in test set
+    % K = 0.2 is usually default --> 20% of data is in test set
+    [train,test] = crossvalind('HoldOut',length(interactions), K); 
     Xtrain = interactions(train,:);
     Ytrain = scores(train);
     Xtest = interactions(test,:);
     Ytest = scores(test);
-    %plug training data into indigo train
-    writecell([Xtrain,num2cell(Ytrain)],'train.xlsx','Sheet',sheet)
     
-    if modelType == 1
-        [train_interactions, train_scores, labels, indigo_model,...
-         sigma_delta_scores, conditions] = indigo_train('train.xlsx', sheet,...
+    % Plug training data into indigo_train
+    writecell([Xtrain,num2cell(Ytrain)],'train.xlsx')
+    
+    if strcmp(modelType, 'ecoli_model')
+        [~, ~, labels, indigo_model,...
+         sigma_delta_scores, ~] = indigo_train('train.xlsx', standardize,...
          annotation_file,chemogenomics_file);
-    elseif modelType == 2
-        [train_interactions, train_scores, labels, indigo_model,...
-         sigma_delta_scores, conditions] = indigo_train_tb('train.xlsx',sheet, ...
+    elseif strcmp(modelType, 'mtb_model')
+        [~, ~, labels, indigo_model,...
+         sigma_delta_scores, ~] = indigo_train_tb('train.xlsx',standardize, ...
          annotation_file,chemogenomics_file,1,phenotype_data,phenotype_labels,col);
     end
     
-    
+    % Adjust sigma delta scores based on presenece of orthologous and 
+    % nonorthologous genes
     if ~isempty(testOrthologs)
         [~,sigma_delta_scores] = indigo_orthology(labels, testOrthologs, ...
                                  sigma_delta_scores, indigo_model); 
     end
 
-   
-    %takes a long time!
+    % Build the model
     tic
     indigo_model = fitrensemble(single(sigma_delta_scores'), ...
                    single(Xtrain),'Method','Bag');
     toc
     
     
-    %Predict and evaluate
+    % Make predictions and store results
     predictStep();   
     
 elseif strcmp(valMethod, 'holdout')
     i = 1;
-    %Holdout validation - add 80% of test set to training and keep 20% as test
-    [train,test] = crossvalind('HoldOut',length(scores),0.2); %20% of data is in test set
+    % Add 80% of test set to training and keep 20% as test
+    [train,test] = crossvalind('HoldOut',length(scores),0.2); 
     Xtrain = interactions(train,:);
     Ytrain = scores(train);
     Xtest = interactions(test,:);
     Ytest = scores(test);
     
-    if modelType == 1
+    if strcmp(modelType, 'ecoli_model')
         [~,~,~,sigma_delta_scores] = indigo_predict(indigo_model,Xtrain, ...
          input_type,annotation_file,chemogenomics_file);
-    elseif modelType == 2
+    elseif strcmp(modelType, 'mtb_model')
         [~,~,~,sigma_delta_scores] = indigo_predict_tb(indigo_model,Xtrain, ...
          input_type,annotation_file,chemogenomics_file, 1, phenotype_data, phenotype_labels, col);
     end
@@ -208,26 +244,21 @@ elseif strcmp(valMethod, 'holdout')
                                  sigma_delta_scores, indigo_model); 
     end
 
-    interaction_scores_cv = [interaction_scores_all; Ytrain];
-    sigma_delta_scores_cv = [sigma_delta_scores_all, sigma_delta_scores];
+    interaction_scores = [interaction_scores_all; Ytrain];
+    sigma_delta_scores = [sigma_delta_scores_all, sigma_delta_scores];
    
-    %takes a long time!
     tic
-    indigo_model = fitrensemble(single(sigma_delta_scores_cv'), ...
-                   single(interaction_scores_cv),'Method','Bag');
+    indigo_model = fitrensemble(single(sigma_delta_scores'), ...
+                   single(interaction_scores),'Method','Bag');
     toc
     
-    %Predict and evaluate
     predictStep();
     
 elseif strcmp(valMethod,'independent')
     i = 1;
-    %independent validation
-    %No need to do this more than once
-    %leave out the entire test set and make predictions on it
     
-    %Only need to do this if you have more than one file in training data
-    %or if the training data has orthologs
+    % Only need to do this if you have more than one file in training data
+    % or if the training data has orthologs
     if length(trainingData) > 1 || ~isempty(trainOrthologs)
         tic
         indigo_model = fitrensemble(single(sigma_delta_scores_all'), ...
@@ -237,16 +268,15 @@ elseif strcmp(valMethod,'independent')
     
     Xtrain = interactions_all;
     Ytrain = interaction_scores_all;
-    Xtest = interactions;   %What you are plugging in to make predictions
-    Ytest = scores;         %What you are comparing to at the end
+    Xtest = interactions;   
+    Ytest = scores;       
 
-    %Predict and evaluate
     predictStep();
-elseif strcmp(valMethod,'cv_onself')
+    
+elseif strcmp(valMethod,'Kfold_onself')
     indigoSummary.K = K;
     for i = 1:K
         fprintf('Run %d\n',i)
-        %Only use data from test file
         idx = crossvalind('Kfold',length(scores),K);
         test = (idx == i);
         train = ~test;
@@ -254,38 +284,35 @@ elseif strcmp(valMethod,'cv_onself')
         Ytrain = scores(train);
         Xtest = interactions(test,:);
         Ytest = scores(test);
-        writecell([Xtrain,num2cell(Ytrain)],'train.xlsx','Sheet',sheet)
+        writecell([Xtrain,num2cell(Ytrain)],'train.xlsx')
         
-        if modelType == 1
-            [train_interactions, train_scores, labels, indigo_model,...
-             sigma_delta_scores, conditions] = indigo_train('train.xlsx',sheet, ...
+        if strcmp(modelType, 'ecoli_model')
+            [~, ~, labels, indigo_model,...
+             sigma_delta_scores, ~] = indigo_train('train.xlsx',standardize, ...
              annotation_file,chemogenomics_file);
-        elseif modelType == 2
-            [train_interactions, train_scores, labels, indigo_model,...
-             sigma_delta_scores, conditions] = indigo_train_tb('train.xlsx',sheet, ...
+        elseif strcmp(modelType, 'mtb_model')
+            [~, ~, labels, indigo_model,...
+             sigma_delta_scores, ~] = indigo_train_tb('train.xlsx',standardize, ...
              annotation_file,chemogenomics_file,1,phenotype_data,phenotype_labels,col);
         end
         
         if ~isempty(testOrthologs)
-        [~,sigma_delta_scores] = indigo_orthology(labels, testOrthologs, ...
-                                 sigma_delta_scores, indigo_model); 
+            [~,sigma_delta_scores] = indigo_orthology(labels, testOrthologs, ...
+                                     sigma_delta_scores, indigo_model); 
         end
         
         tic
-        indigo_model = fitrensemble(single(sigma_delta_scores_all'), ...
-                   single(interaction_scores_all),'Method','Bag');
+        indigo_model = fitrensemble(single(sigma_delta_scores'), ...
+                   single(Ytrain),'Method','Bag');
         toc
         
-        %Predict and evaluate
-        predictStep();    
+        predictStep();   
     end
-elseif strcmp(valMethod,'cv')
+    
+elseif strcmp(valMethod,'Kfold')
     indigoSummary.K = K;
     for i = 1:K
         fprintf('Run %d\n',i)
-        %Only method that requires data from test file to be in training data
-        %with other sets of data
-        %Split up test group into subgroups
         idx = crossvalind('Kfold',length(scores),K);
         test = (idx == i);
         train = ~test;
@@ -294,10 +321,10 @@ elseif strcmp(valMethod,'cv')
         Xtest = interactions(test,:);
         Ytest = scores(test);
         
-        if modelType == 1
+        if strcmp(modelType, 'ecoli_model')
             [~,~,~,sigma_delta_scores] = indigo_predict(indigo_model,Xtrain, ...
              input_type,annotation_file,chemogenomics_file);
-        elseif modelType == 2
+        elseif strcmp(modelType, 'mtb_model')
             [~,~,~,sigma_delta_scores] = indigo_predict_tb(indigo_model,Xtrain, ...
              input_type,annotation_file,chemogenomics_file, 1, phenotype_data, phenotype_labels, col);
         end
@@ -307,29 +334,28 @@ elseif strcmp(valMethod,'cv')
                                      sigma_delta_scores, indigo_model); 
         end
 
-        interaction_scores_cv = [interaction_scores_all; Ytrain];
-        sigma_delta_scores_cv = [sigma_delta_scores_all, sigma_delta_scores];
+        interaction_scores = [interaction_scores_all; Ytrain];
+        sigma_delta_scores = [sigma_delta_scores_all, sigma_delta_scores];
         
-        %takes a long time!
+        disp(size(interaction_scores))
+        disp(size(sigma_delta_scores))
         tic
-        indigo_model = fitrensemble(single(sigma_delta_scores_cv'), ...
-                       single(interaction_scores_cv),'Method','Bag');
+        indigo_model = fitrensemble(single(sigma_delta_scores'), ...
+                       single(interaction_scores),'Method','Bag');
         toc
         
-        %Predict and evaluate
         predictStep();
     end
+    
 end
 
-%nested function for predicting scores and evaluating results
+% nested function for predicting scores and storing results
 function predictStep()
-    %input type changes whether you are predicting all combinations 
-    %of list of drugs (1) or given interactions (2)
     
-    if modelType == 1
+    if strcmp(modelType, 'ecoli_model')
          [~,predicted_scores,~,sigma_delta_input] = indigo_predict(indigo_model, ...
           Xtest,input_type,'identifiers_match.xlsx','ecoli_phenotype_data_cell.xlsx');
-    elseif modelType == 2
+    elseif strcmp(modelType, 'mtb_model')
          [~,predicted_scores,~,sigma_delta_input] = indigo_predict_tb(indigo_model,Xtest, ...
           input_type,annotation_file,chemogenomics_file, 1, phenotype_data, phenotype_labels, col);
     end
@@ -343,10 +369,11 @@ function predictStep()
 
     indigoSummary.model{i} = indigo_model;
     indigoSummary.trainPairs{i} = Xtrain;
-    indigoSummary.trainScores{:,i} = Ytrain;
+    indigoSummary.trainScores{i} = Ytrain;
+    indigoSummary.sigma_delta_scores{i} = sigma_delta_scores;
     indigoSummary.testPairs{i} = Xtest;
-    indigoSummary.testScores{:,i} = Ytest;
-    indigoSummary.predictedScores{:,i} = predicted_scores;
+    indigoSummary.testScores{i} = Ytest;
+    indigoSummary.predictedScores{i} = predicted_scores;
     fprintf(sprintf('INDIGO predictions subset %d complete!\n',i))
 end
 

@@ -1,10 +1,10 @@
-function [orthologs,orthologyFile] = get_orthologs(filename,modelType)
+function orthologs = get_orthologs(filename,modelType)
 
-data_table = readtable('all_data_fu.xlsx');
+data_table = readtable('all_data.xlsx');
 
-if modelType == 1
+if strcmp(modelType, 'ecoli_model')
     orthology = data_table.EcoliOrthologs;
-elseif modelType == 2
+elseif strcmp(modelType, 'mtb_model')
     orthology = data_table.MtbOrthologs;
 end
 

@@ -56,11 +56,6 @@ normScores = zscore(scores);
 histogram(normScores)
 hold off
 legend('original scores','z-scores')
-
-% write norm scores to second sheet
-%Adjust filepath as needed
-filepath = which(filename);
-writecell([drugs,num2cell(normScores)],filepath,'Sheet',2)
 subplot(2,2,2)
 
 normplot(scores)

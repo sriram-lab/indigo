@@ -1,8 +1,8 @@
 function [train_interactions, trainxnscores, phenotype_labels, ...
     indigo_model, sigma_delta_scores, conditions] = ...
-        indigo_train(interaction_filename, sheet, annotation_filename, ...
-        chemogenomics_filename, z, phenotype_data, phenotype_labels, ...
-        conditions, interaction_scores, interaction_pairs)
+    indigo_train(interaction_filename, standardize, annotation_filename, ...
+    chemogenomics_filename, z, phenotype_data, phenotype_labels, ...
+    conditions, interaction_scores, interaction_pairs)
 
     %{ 
     DESCRIPTION
@@ -24,7 +24,8 @@ function [train_interactions, trainxnscores, phenotype_labels, ...
     
     REQUIRED INPUTS: 
         1. interaction_filename:    filename for drug interactions
-        2. sheet:                   sheet name for interaction_filename
+        2. standardize:             'standardized' to convert interaction
+                                    scores to z scores
         3. annotation_filename:     filename for matching drug names to 
                                     chemogenomic condition names
         4. chemogenomics_filename:  filename for chemogenomic data
@@ -52,9 +53,13 @@ function [train_interactions, trainxnscores, phenotype_labels, ...
     
     %% INPUT PROCESSING
     if ~exist('interaction_scores','var') || isempty(interaction_scores)
-        data = readcell(interaction_filename,'Sheet',sheet);
-        interaction_scores = cell2mat(data(:,end));
-        interaction_pairs = data(:,1:end-1);
+        % Use readtable to handle missing values as {0x0 char}
+        data = readtable(interaction_filename,"ReadVariableNames",false);
+        interaction_scores = data{:,end};
+        interaction_pairs = data{:,1:end-1};
+        if strcmp(standardize, 'standardized')
+            interaction_scores = zscore(interaction_scores);
+        end
     end
     drugs_all = unique(interaction_pairs);
     if ~exist('z','var') || isempty(z)
@@ -84,14 +89,14 @@ function [train_interactions, trainxnscores, phenotype_labels, ...
     end
     
     %% FILTER OUT INTERACTIONS WITHOUT CHEMOGENOMIC DATA 
-    ix = ismember(drugpairsname_cell,conditions); 
-    ix = (ix(:,1) & ix(:,2)); 
-    train_interactions = drugpairsname_cell(ix,:);
+    ix = ismember(drugpairsname_cell, conditions); 
+    ix = (sum(~cellfun(@isempty, drugpairsname_cell), 2)) == sum(ix, 2);
+    train_interactions = drugpairsname_cell(ix,:); 
     trainxnscores = interaction_scores(ix);
     
     %% DEFINE INPUTS FOR INDIGO AND TRAIN MODEL
     traindrugs = unique(train_interactions(:));
-    traindrugs = traindrugs(~cellfun('isempty',traindrugs));
+    traindrugs(cellfun(@isempty, traindrugs)) = []; 
     [~, pos] = ismember(traindrugs,conditions); 
     trainchemgen = phenotype_data(:,pos);
     [~, indigo_model, sigma_delta_scores] = ...
