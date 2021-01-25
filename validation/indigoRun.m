@@ -91,7 +91,7 @@ data = readtable(testData,"ReadVariableNames",false);
 scores = data{:,end};
 interactions = data{:,1:end-1};
 
-indigoSummary.standardized = standardize;
+indigoSummary.standardize = standardize;
 if strcmp(standardize,'z_score')
     scores = zscores(scores);
 end
@@ -140,7 +140,7 @@ if ~isempty(trainingData)
             train_scores = data{:,end};
             train_interactions = data{:,1:end-1};
             
-            if strcmp(standardize, 'standardized')
+            if strcmp(standardize, 'standardize')
                 train_scores = zscore(train_scores);
             end
             
@@ -335,7 +335,6 @@ elseif strcmp(valMethod,'Kfold')
         end
 
         interaction_scores = [interaction_scores_all; Ytrain];
-        disp(size([sigma_delta_scores_all, sigma_delta_scores]))
         sigma_delta_scores = [sigma_delta_scores_all, sigma_delta_scores];
         
         tic
