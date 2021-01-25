@@ -40,9 +40,10 @@ function [phenotype_data, phenotype_labels, conditions] = process_chemgen(fname,
         z = 2;
     end
     %% LOAD DATA
-    [phenotype_num, txt] = xlsread(fname); % numerical data
-    probelist = txt(2:end,1);              % gene names (ECK numbers)
-    conditions = txt(1,2:end)';            % list of conditions
+    data = readtable(fname);              % supplementary file. nicholsetal
+    phenotype_num = data{1:end,2:end};    % numerical data
+    probelist = data.Gene;                % gene names (ECK numbers)
+    conditions = data.Properties.VariableNames(2:end)';  %list of conditions
 
     %% CONVERT GENE IDs TO STANDARD IDs
     load ('ecoli_annotation_data1','genenames_array', 'genenames_bnums')
@@ -61,21 +62,39 @@ function [phenotype_data, phenotype_labels, conditions] = process_chemgen(fname,
     [ix, pos] =ismember(upper(plist),upper(genenames_array));
     plist_bnums = plist;
     plist_bnums(ix) = genenames_bnums(pos(ix));
-    plist_bnums = matlab.lang.makeUniqueStrings(plist_bnums);
+    
+    % Carolina's change's - consult before including them
+%     plist_bnums = matlab.lang.makeUniqueStrings(plist_bnums);
     
    %% TRANSFORM DATA
     % Sensitive strains
-    sensitive_phenotype_num = phenotype_num < -z; 
-    idx = sum(sensitive_phenotype_num, 2) == 0;
-    sensitive_data = sensitive_phenotype_num(~idx,:);
-    sensitive_labels = plist_bnums(~idx);
-    % Resistant strains
-    resistant_phenotype_num = phenotype_num > z; 
-    idx = sum(resistant_phenotype_num,2) == 0;
-    resistant_data = resistant_phenotype_num(~idx,:);
-    resistant_labels = plist_bnums(~idx);
+%     sensitive_phenotype_num = phenotype_num < -z; 
+%     idx = sum(sensitive_phenotype_num, 2) == 0;
+%     sensitive_data = sensitive_phenotype_num(~idx,:);
+%     sensitive_labels = plist_bnums(~idx);
+%     % Resistant strains
+%     resistant_phenotype_num = phenotype_num > z; 
+%     idx = sum(resistant_phenotype_num,2) == 0;
+%     resistant_data = resistant_phenotype_num(~idx,:);
+%     resistant_labels = plist_bnums(~idx);
 
     %% DEFINE OUTPUT PHENOTYPE VARIABLES
-    phenotype_data = [sensitive_data; resistant_data];
-    phenotype_labels = [sensitive_labels; resistant_labels];
+%     phenotype_data = [sensitive_data; resistant_data];
+%     phenotype_labels = [sensitive_labels; resistant_labels];
+    
+    for i = 1:324
+        te = plist_bnums(phenotype_num(:,i) < -z);
+        cell_z1_list_t(1:length(te),i) = te;
+        lte(i) = length(te);
+    end
+    
+    cell_z1_list_t = regexprep(cell_z1_list_t,'''','');
+    phenotype_labels = unique(cell_z1_list_t (~cellfun(@isempty, cell_z1_list_t)));
+    
+    clear nicholslistix_t
+    for i = 1:324
+        cell_list_column = cell_z1_list_t(:,i);
+        nicholslistix_t(:,i) = ismember(phenotype_labels,cell_list_column(~cellfun('isempty',cell_list_column)));
+    end
+    phenotype_data = nicholslistix_t;
 end

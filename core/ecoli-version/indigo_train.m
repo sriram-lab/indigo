@@ -24,7 +24,7 @@ function [train_interactions, trainxnscores, phenotype_labels, ...
     
     REQUIRED INPUTS: 
         1. interaction_filename:    filename for drug interactions
-        2. standardize:             'standardized' to convert interaction
+        2. standardize:             'z_score' to convert interaction
                                     scores to z scores
         3. annotation_filename:     filename for matching drug names to 
                                     chemogenomic condition names

@@ -337,8 +337,6 @@ elseif strcmp(valMethod,'Kfold')
         interaction_scores = [interaction_scores_all; Ytrain];
         sigma_delta_scores = [sigma_delta_scores_all, sigma_delta_scores];
         
-        disp(size(interaction_scores))
-        disp(size(sigma_delta_scores))
         tic
         indigo_model = fitrensemble(single(sigma_delta_scores'), ...
                        single(interaction_scores),'Method','Bag');
