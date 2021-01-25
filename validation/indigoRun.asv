@@ -335,7 +335,7 @@ elseif strcmp(valMethod,'Kfold')
         end
 
         interaction_scores = [interaction_scores_all; Ytrain];
-        disp(size([sigma_delta_scores_all, sigma_delta_scores]))
+        disp([
         sigma_delta_scores = [sigma_delta_scores_all, sigma_delta_scores];
         
         tic

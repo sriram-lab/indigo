@@ -40,7 +40,7 @@ function [phenotype_data, phenotype_labels, conditions] = process_chemgen(fname,
         z = 2;
     end
     %% LOAD DATA
-    data = readtable(fname);              % supplementary file. nicholsetal
+    data = readtable(fname,'VariableNamingRule','preserve');
     phenotype_num = data{1:end,2:end};    % numerical data
     probelist = data.Gene;                % gene names (ECK numbers)
     conditions = data.Properties.VariableNames(2:end)';  %list of conditions

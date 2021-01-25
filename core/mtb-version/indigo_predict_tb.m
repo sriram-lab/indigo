@@ -73,9 +73,7 @@ function [test_interactions, testinteractions_scores, ...
     %% CONVERT AND MATCH INTERACTION LABELS WITH CHEMOGENOMIC DATA
     
     % Preserve any trailing whitespace when reading in data
-    opts = detectImportOptions(annotation_filename,"ReadVariableNames",false);
-    opts = setvaropts(opts,strcmp(opts.VariableTypes,'char'),'WhitespaceRule','preserve');
-    txt = readcell(annotation_filename,opts);
+    txt = readcell(annotation_filename);
     [drugxn_id, chemgen_id] = deal(txt(:,1),txt(:,2));
 
     % Define interaction pairs

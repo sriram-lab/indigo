@@ -6,10 +6,11 @@ function [phenotype_data, phenotype_labels, conditions] = process_chemgen_tb(fna
 if isempty(fname)
     fname = 'ecoli_phenotype_data_cell.xlsx';
 end
-data = readtable(fname);  % supplementary file. nicholsetal
-phenotype_num = data{1:end,2:end};
-probelist = data.Gene;
-conditions = data.Properties.VariableNames(2:end)';
+
+data = readtable(fname,'VariableNamingRule','preserve');
+phenotype_num = data{1:end,2:end};    % numerical data
+probelist = data.Gene;                % gene names (ECK numbers)
+conditions = data.Properties.VariableNames(2:end)';  %list of conditions
  
 if any(isnan(phenotype_num(:,1)))
     phenotype_num(:,1) = '';
