@@ -1,4 +1,4 @@
-function [stats,averages,overview] = analyze(indigoSummary)
+function [stats,averages,overview] = analyze(indigoSummary,resultIndex)
 
     %{
     DESCRIPTION
@@ -33,9 +33,13 @@ function [stats,averages,overview] = analyze(indigoSummary)
     dataName = erase(indigoSummary.testData,'.xlsx');
     
     filename = strcat(erase(indigoSummary.testData,'.xlsx'),'_',indigoSummary.valMethod);
+    sheetName = indigoSummary.valMethod;
     if strcmp(indigoSummary.standardize,'z_score')
         filename = sprintf('%s_z', filename);
+        sheetName = strcat(indigoSummary.valMethod,' (z)');
     end
+
+    
     if strcmp(indigoSummary.scoring,'bliss') || strcmp(indigoSummary.scoring,'loewe')
         resultsFile = strcat('results/v2/', indigoSummary.modelType, '/', indigoSummary.scoring, ...
             '/', indigoSummary.valMethod, '/', filename);
@@ -58,7 +62,8 @@ function [stats,averages,overview] = analyze(indigoSummary)
         f1 = figure(1);
         f1.Visible = 'off';
         t1 = tiledlayout(f1,3,2);
-        title(t1,sprintf('ROC Curves for %s', ),'FontWeight','bold')
+        title(t1,sprintf('ROC Curves for %s\n', dataName), ...
+              'FontWeight','bold', 'Interpreter', 'None')
         
         for i = 1:indigoSummary.K
             drugs_total = [drugs_total; indigoSummary.testPairs{i}];
@@ -152,11 +157,11 @@ function [stats,averages,overview] = analyze(indigoSummary)
 
     %% FORMAT TABLES
     %Tables
-    varnames = {'InteractionCount', ...
+    varnames = {'Interaction Count', ...
                     'R (rank)', ...
                     'P value', ...
                     'Accuracy', ...
-                    'Absolute error', ...
+                    'Absolute Error', ...
                     'Precision (synergy)', ...
                     'Recall (synergy)', ...
                     'Precision (antagonism)', ...
@@ -201,17 +206,19 @@ function [stats,averages,overview] = analyze(indigoSummary)
         overviewTable
         writetable(resultsTable,strcat(resultsFile,'.xlsx'),'Sheet','results','WriteRowNames',true)
         writetable(averagesTable,strcat(resultsFile,'.xlsx'),'Sheet','averages','WriteRowNames',true)
-        writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)
+        writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)  
     else
         overviewTable
         writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)
     end
+    
+    writetable(overviewTable,strcat(indigoSummary.modelType,'overview_results.xlsx'), ...
+            'Sheet',sheetName,'Range',sprintf('B2:L2')
 
     %% CLASSIFY SCORES
     function [Ytest, Ypred] = classifyScores(Ytest, Ypred)
         [synergyCutoff, antagonismCutoff] = cutoffs(indigoSummary.testData);
         %synergy - assign value = -1, but remember, synergy is good!
-
         Ytest(Ytest <= synergyCutoff) = -1;
         Ypred(Ypred <= synergyCutoff) = -1;
         %neutral - assign value = 0
@@ -346,6 +353,4 @@ function [stats,averages,overview] = analyze(indigoSummary)
         ylabel('Predicted')
         legend(h,'Location','northwest')   
     end
-
-    close all
 end

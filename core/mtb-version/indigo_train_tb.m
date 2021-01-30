@@ -71,13 +71,11 @@ function [train_interactions, trainxnscores, phenotype_labels, ...
     end
 
     %% CONVERT AND MATCH INTERACTION LABELS WITH CHEMOGENOMIC DATA 
-    opts = detectImportOptions(annotation_filename,"ReadVariableNames",false);
-    opts = setvaropts(opts,strcmp(opts.VariableTypes,'char'),'WhitespaceRule','preserve');
-    txt = readcell(annotation_filename,opts);
+    txt = readcell(annotation_filename);
     [drugxn_id, chemgen_id] = deal(txt(:,1),txt(:,2));
     drugnames_cell = drugs_all;
     for i = 1:length(drugxn_id)
-        drugnames_cell (ismember(drugnames_cell, ...
+        drugnames_cell(ismember(drugnames_cell, ...
             drugxn_id(i))) = chemgen_id(i);
     end
     drugpairsname_cell = interaction_pairs;

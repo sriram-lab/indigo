@@ -1,4 +1,4 @@
-function [stats,averages,overview] = analyze(indigoSummary)
+function [stats,averages,overview] = analyze(indigoSummary,resultIndex)
 
     %{
     DESCRIPTION
@@ -33,9 +33,15 @@ function [stats,averages,overview] = analyze(indigoSummary)
     dataName = erase(indigoSummary.testData,'.xlsx');
     
     filename = strcat(erase(indigoSummary.testData,'.xlsx'),'_',indigoSummary.valMethod);
+    sheetName = indigoSummary.valMethod;
     if strcmp(indigoSummary.standardize,'z_score')
         filename = sprintf('%s_z', filename);
+        sheetName = strcat(indigoSummary.valMethod,' (z)');
     end
+
+    resultsDirectory = strcat('results/v2/', indigoSummary.modelType, '/', indigoSummary.scoring, ...
+            '/', indigoSummary.valMethod, '/');
+        
     if strcmp(indigoSummary.scoring,'bliss') || strcmp(indigoSummary.scoring,'loewe')
         resultsFile = strcat('results/v2/', indigoSummary.modelType, '/', indigoSummary.scoring, ...
             '/', indigoSummary.valMethod, '/', filename);
@@ -202,11 +208,15 @@ function [stats,averages,overview] = analyze(indigoSummary)
         overviewTable
         writetable(resultsTable,strcat(resultsFile,'.xlsx'),'Sheet','results','WriteRowNames',true)
         writetable(averagesTable,strcat(resultsFile,'.xlsx'),'Sheet','averages','WriteRowNames',true)
-        writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)
+        writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)  
     else
         overviewTable
-        writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)c
+        writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)
     end
+    
+    % Write results to overview file for better analysis
+    writetable(overviewTable,strcat(resultsDirectory,indigoSummary.modelType,'_overview_results.xlsx'), ...
+            'Sheet',sheetName,'Range',sprintf('B%d:L%d',resultIndex+1))
 
     %% CLASSIFY SCORES
     function [Ytest, Ypred] = classifyScores(Ytest, Ypred)
