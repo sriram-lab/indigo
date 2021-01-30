@@ -62,39 +62,38 @@ function [phenotype_data, phenotype_labels, conditions] = process_chemgen(fname,
     [ix, pos] =ismember(upper(plist),upper(genenames_array));
     plist_bnums = plist;
     plist_bnums(ix) = genenames_bnums(pos(ix));
+    plist_bnums = matlab.lang.makeUniqueStrings(plist_bnums);
     
-    % Carolina's change's - consult before including them
-%     plist_bnums = matlab.lang.makeUniqueStrings(plist_bnums);
+    % TRANSFORM DATA
+    % Sensitive strains - bacterial growth level is less than 2 fold
+    % change.
+    % Drug inhibits bacterial growth when specific gene is knocked out.
+    % This would suggest that the gene helps bacteria have resistance.
     
-   %% TRANSFORM DATA
-    % Sensitive strains
-%     sensitive_phenotype_num = phenotype_num < -z; 
-%     idx = sum(sensitive_phenotype_num, 2) == 0;
-%     sensitive_data = sensitive_phenotype_num(~idx,:);
-%     sensitive_labels = plist_bnums(~idx);
-%     % Resistant strains
-%     resistant_phenotype_num = phenotype_num > z; 
-%     idx = sum(resistant_phenotype_num,2) == 0;
-%     resistant_data = resistant_phenotype_num(~idx,:);
-%     resistant_labels = plist_bnums(~idx);
+    % Checks entire matrix for condition, if less than 2 then make 0, else
+    % 1
+    sensitive_phenotype_num = phenotype_num < -z; 
+    % if sum of all values across row is 0, return 1 for that row. This is
+    % finding the rows where bacteria is resistant across all drugs, meaning
+    % the knockout gene has no effect.
+    idx = sum(sensitive_phenotype_num, 2) == 0;
+    % Get rows that are not 0 all across. These knockout genes cause bacteria to be
+    % sensitive to at least one of the drugs.
+    sensitive_data = sensitive_phenotype_num(~idx,:);
+    % get corresponding bnum labels for gene names.
+    sensitive_labels = plist_bnums(~idx);
+    % Resistant strains - bacterial growth level is greater than 2 fold
+    % change.
+    % Drug does not inhibit bacterial growth when specific gene is knocked
+    % out. Genes likely do not help with resistance. Same logic as above, just flipped.
+    resistant_phenotype_num = phenotype_num > z; 
+    idx = sum(resistant_phenotype_num, 2) == 0;  % all sensitive rows
+    resistant_data = resistant_phenotype_num(~idx,:);
+    resistant_labels = plist_bnums(~idx);
 
-    %% DEFINE OUTPUT PHENOTYPE VARIABLES
-%     phenotype_data = [sensitive_data; resistant_data];
-%     phenotype_labels = [sensitive_labels; resistant_labels];
+    % DEFINE OUTPUT PHENOTYPE VARIABLES
+    % Sets up row length of sigma delta matrix.
+    phenotype_data = [sensitive_data; resistant_data];
+    phenotype_labels = [sensitive_labels; resistant_labels];
     
-    for i = 1:324
-        te = plist_bnums(phenotype_num(:,i) < -z);
-        cell_z1_list_t(1:length(te),i) = te;
-        lte(i) = length(te);
-    end
-    
-    cell_z1_list_t = regexprep(cell_z1_list_t,'''','');
-    phenotype_labels = unique(cell_z1_list_t (~cellfun(@isempty, cell_z1_list_t)));
-    
-    clear nicholslistix_t
-    for i = 1:324
-        cell_list_column = cell_z1_list_t(:,i);
-        nicholslistix_t(:,i) = ismember(phenotype_labels,cell_list_column(~cellfun('isempty',cell_list_column)));
-    end
-    phenotype_data = nicholslistix_t;
 end

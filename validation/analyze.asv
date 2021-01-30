@@ -58,8 +58,7 @@ function [stats,averages,overview] = analyze(indigoSummary)
         f1 = figure(1);
         f1.Visible = 'off';
         t1 = tiledlayout(f1,3,2);
-        title(t1,sprintf('ROC Curves for %s\n', dataName), ...
-              'FontWeight','bold', 'Interpreter', 'None')
+        title(t1,sprintf('ROC Curves for %s', ),'FontWeight','bold')
         
         for i = 1:indigoSummary.K
             drugs_total = [drugs_total; indigoSummary.testPairs{i}];
@@ -153,11 +152,11 @@ function [stats,averages,overview] = analyze(indigoSummary)
 
     %% FORMAT TABLES
     %Tables
-    varnames = {'Interaction Count', ...
+    varnames = {'InteractionCount', ...
                     'R (rank)', ...
                     'P value', ...
                     'Accuracy', ...
-                    'Absolute Error', ...
+                    'Absolute error', ...
                     'Precision (synergy)', ...
                     'Recall (synergy)', ...
                     'Precision (antagonism)', ...
@@ -205,13 +204,14 @@ function [stats,averages,overview] = analyze(indigoSummary)
         writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)
     else
         overviewTable
-        writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)c
+        writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)
     end
 
     %% CLASSIFY SCORES
     function [Ytest, Ypred] = classifyScores(Ytest, Ypred)
         [synergyCutoff, antagonismCutoff] = cutoffs(indigoSummary.testData);
         %synergy - assign value = -1, but remember, synergy is good!
+
         Ytest(Ytest <= synergyCutoff) = -1;
         Ypred(Ypred <= synergyCutoff) = -1;
         %neutral - assign value = 0
@@ -346,4 +346,6 @@ function [stats,averages,overview] = analyze(indigoSummary)
         ylabel('Predicted')
         legend(h,'Location','northwest')   
     end
+
+    close all
 end

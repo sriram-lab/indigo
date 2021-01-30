@@ -8,7 +8,7 @@ arguments
                     'independent'})} = 'Kfold'
     K {mustBeInteger} = 5
     standardize char {mustBeMember(standardize,{'','z_score'})} = ''
-    modelType char {mustBeMember(modelType,{'ecoli_model','mtb_model'})} = 'ecoli_model';
+    modelType char {mustBeMember(modelType,{'ecoli_model','mtb_model','original_model'})} = 'ecoli_model';
     input_type {mustBeInteger} = 2;
     scoring char {mustBeMember(scoring,{'bliss', 'loewe', ''})} = ''
 end
@@ -49,9 +49,11 @@ end
       4. K:                 Cross-validation parameter 
                             (default K = 5 for Kfold cross-validation)
       5. standardize:       To get zscores or not
-      6. modelType:         1 for E. coli model, 2 for M. tb model. Switches
-                            training data and chemogenomics/transcriptomics 
-                            data that is used
+      6. modelType:         E. coli model, M. tb model, or original model. 
+                            Switches training data and chemogenomics/transcriptomics 
+                            data that is used. Original model means using
+                            only dataset E. coli dataset from
+                            Chandrasekaran et al., 2016.
       7. input_type:        1 for drug list, 2 for drug combinations
       8. scoring            Interaction scoring method. Can be Bliss or
                             Loewe, default is none ('') which means model
@@ -64,7 +66,7 @@ end
 indigoSummary = struct;
 
 indigoSummary.modelType = modelType;
-if strcmp(modelType, 'ecoli_model')
+if strcmp(modelType, 'ecoli_model') || strcmp(modelType, 'original_model')
     %E. coli chemogenomics data
     annotation_file = 'identifiers_match.xlsx';
     chemogenomics_file = 'ecoli_phenotype_data_cell.xlsx';
@@ -84,6 +86,7 @@ end
 indigoSummary.scoring = scoring;
 
 indigoSummary.testData = testData;
+indigoSummary.trainingData = trainingData;
 
 % Read in the test data
 % Use readtable to handle missing values as {0x0 char}
