@@ -205,7 +205,7 @@ function [stats,averages,overview] = analyze(indigoSummary)
         writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)
     else
         overviewTable
-        writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)c
+        writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)
     end
 
     %% CLASSIFY SCORES
