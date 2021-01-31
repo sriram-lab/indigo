@@ -219,7 +219,7 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
     overviewTable = overviewTable(:,2:end);    
     
     writecell(dataFiles, overviewFile, 'Sheet', sheetName, 'Range', ...
-        sprintf('A2:A%d', length(dataFiles) - 1))
+        sprintf('A2:A%d', length(dataFiles)+1))
     writecell([{'Datasets'}, varnames], overviewFile, 'Sheet', sheetName, 'Range', 'A1:L1')
     writetable(overviewTable, overviewFile, 'Sheet', sheetName, 'Range', ...
         sprintf('B%d:L%d',resultIndex,resultIndex), 'WriteVariableNames',false)
