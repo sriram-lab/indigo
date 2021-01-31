@@ -9,7 +9,7 @@ arguments
                     'independent'})} = 'Kfold'
     K {mustBeInteger} = 5
     standardize char {mustBeMember(standardize,{'','z_score'})} = ''
-    modelType char {mustBeMember(modelType,{'ecoli_model','mtb_model','original_model'})} = 'ecoli_model';
+    modelType char {mustBeMember(modelType,{'original_model','ecoli_model','mtb_model'})} = 'ecoli_model';
     input_type {mustBeInteger} = 2;
     scoring char {mustBeMember(scoring,{'bliss', 'loewe', ''})} = ''
 end

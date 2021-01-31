@@ -18,15 +18,17 @@ function resultsFile = saveIndigo(indigoSummary)
         1.  indigoSummary:      Model parameters and results 
     %}
 
-    dataName = strcat(erase(indigoSummary.testData,'.xlsx'),'_',indigoSummary.valMethod);
+    filename = strcat(erase(indigoSummary.testData,'.xlsx'),'_',indigoSummary.valMethod);
     if strcmp(indigoSummary.standardize,'z_score')
-        dataName = sprintf('%s_z', dataName);
+        filename = sprintf('%s_z', filename);
     end
+     
     if strcmp(indigoSummary.scoring,'bliss') || strcmp(indigoSummary.scoring,'loewe')
-        resultsFile = strcat(indigoSummary.modelType, '/', indigoSummary.scoring, ...
-            '/', indigoSummary.valMethod, '/', dataName, '.mat');
+        resultsFile = strcat('results/v2/', indigoSummary.modelType, '/', ...
+            indigoSummary.scoring, '/', indigoSummary.valMethod, '/', filename, '.mat');
     else
-        resultsFile = strcat(indigoSummary.modelType, '/', ...
-            indigoSummary.valMethod, '/', dataName, '.mat');
+        resultsFile = strcat('results/v2/',indigoSummary.modelType, '/', ...
+            indigoSummary.valMethod, '/', filename, '.mat');
     end
+    
 end
