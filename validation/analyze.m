@@ -222,7 +222,7 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
         sprintf('A2:A%d', length(dataFiles)+1))
     writecell([{'Datasets'}, varnames], overviewFile, 'Sheet', sheetName, 'Range', 'A1:L1')
     writetable(overviewTable, overviewFile, 'Sheet', sheetName, 'Range', ...
-        sprintf('B%d:L%d',resultIndex,resultIndex), 'WriteVariableNames',false)
+        sprintf('B%d:L%d',resultIndex+1,resultIndex+1), 'WriteVariableNames',false)
 
     %% CLASSIFY SCORES
     function [Ytest, Ypred] = classifyScores(Ytest, Ypred)
