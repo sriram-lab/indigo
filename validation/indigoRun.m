@@ -98,7 +98,7 @@ interactions = data{:,1:end-1};
 
 indigoSummary.standardize = standardize;
 if strcmp(standardize,'z_score')
-    scores = zscores(scores);
+    scores = zscore(scores);
 end
 
 %get orthologs for test file
