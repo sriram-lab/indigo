@@ -2,7 +2,7 @@ function orthologs = get_orthologs(filename, modelType, dataLookup)
 
 data_table = readtable(dataLookup);
 
-if strcmp(modelType, 'ecoli_model')
+if strcmp(modelType, 'original_model') || strcmp(modelType, 'ecoli_model')
     orthology = data_table.EcoliOrthologs;
 elseif strcmp(modelType, 'mtb_model')
     orthology = data_table.MtbOrthologs;

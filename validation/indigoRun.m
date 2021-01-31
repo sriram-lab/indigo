@@ -67,7 +67,7 @@ end
 indigoSummary = struct;
 
 indigoSummary.modelType = modelType;
-if strcmp(modelType, 'ecoli_model') || strcmp(modelType, 'original_model')
+if strcmp(modelType, 'original_model') || strcmp(modelType, 'ecoli_model')
     %E. coli chemogenomics data
     annotation_file = 'identifiers_match.xlsx';
     chemogenomics_file = 'ecoli_phenotype_data_cell.xlsx';
@@ -123,7 +123,7 @@ if ~isempty(trainingData)
         fprintf(sprintf('Adding %s to training data\n',trainingData{i}))
         if i == 1
             %Train first
-            if strcmp(modelType, 'ecoli_model')
+            if strcmp(modelType, 'original_model') || strcmp(modelType, 'ecoli_model')
                 [train_interactions, train_scores, labels, indigo_model,...
                  sigma_delta_scores, ~] = indigo_train(trainingData{i},standardize, ...
                  annotation_file,chemogenomics_file);
@@ -132,7 +132,7 @@ if ~isempty(trainingData)
                  sigma_delta_scores, ~] = indigo_train_tb(trainingData{i},standardize, ...
                  annotation_file,chemogenomics_file,1,phenotype_data,phenotype_labels,col);
             end
-            trainOrthologs = get_orthologs(trainingData{i},modelType);       
+            trainOrthologs = get_orthologs(trainingData{i}, modelType, dataLookup);       
             
             if ~isempty(trainOrthologs)
                 [~,sigma_delta_scores] = indigo_orthology(labels, ...
@@ -149,7 +149,7 @@ if ~isempty(trainingData)
                 train_scores = zscore(train_scores);
             end
             
-            if strcmp(modelType, 'ecoli_model')
+            if strcmp(modelType, 'original_model') || strcmp(modelType, 'ecoli_model')
                 [~,~,~,sigma_delta_scores] = indigo_predict(indigo_model,train_interactions, ...
                   input_type,annotation_file,chemogenomics_file);
             elseif strcmp(modelType,'mtb_model')
@@ -157,7 +157,7 @@ if ~isempty(trainingData)
                  input_type,annotation_file,chemogenomics_file, 1, phenotype_data, phenotype_labels, col);
             end
             
-            trainOrthologs = get_orthologs(trainingData{i},modelType);  
+            trainOrthologs = get_orthologs(trainingData{i},modelType, dataLookup);  
             
             if ~isempty(trainOrthologs)
                 [~,sigma_delta_scores] = indigo_orthology(labels, ...
@@ -199,7 +199,7 @@ if strcmp(valMethod,'holdout_onself')
     % Plug training data into indigo_train
     writecell([Xtrain,num2cell(Ytrain)],'train.xlsx')
     
-    if strcmp(modelType, 'ecoli_model')
+    if strcmp(modelType, 'original_model') || strcmp(modelType, 'ecoli_model')
         [~, ~, labels, indigo_model,...
          sigma_delta_scores, ~] = indigo_train('train.xlsx', standardize,...
          annotation_file,chemogenomics_file);
@@ -235,7 +235,7 @@ elseif strcmp(valMethod, 'holdout')
     Xtest = interactions(test,:);
     Ytest = scores(test);
     
-    if strcmp(modelType, 'ecoli_model')
+    if strcmp(modelType, 'original_model') || strcmp(modelType, 'ecoli_model')
         [~,~,~,sigma_delta_scores] = indigo_predict(indigo_model,Xtrain, ...
          input_type,annotation_file,chemogenomics_file);
     elseif strcmp(modelType, 'mtb_model')
@@ -291,7 +291,7 @@ elseif strcmp(valMethod,'Kfold_onself')
         Ytest = scores(test);
         writecell([Xtrain,num2cell(Ytrain)],'train.xlsx')
         
-        if strcmp(modelType, 'ecoli_model')
+        if strcmp(modelType, 'original_model') || strcmp(modelType, 'ecoli_model')
             [~, ~, labels, indigo_model,...
              sigma_delta_scores, ~] = indigo_train('train.xlsx',standardize, ...
              annotation_file,chemogenomics_file);
@@ -326,7 +326,7 @@ elseif strcmp(valMethod,'Kfold')
         Xtest = interactions(test,:);
         Ytest = scores(test);
         
-        if strcmp(modelType, 'ecoli_model')
+        if strcmp(modelType, 'original_model') || strcmp(modelType, 'ecoli_model')
             [~,~,~,sigma_delta_scores] = indigo_predict(indigo_model,Xtrain, ...
              input_type,annotation_file,chemogenomics_file);
         elseif strcmp(modelType, 'mtb_model')
@@ -355,7 +355,7 @@ end
 % nested function for predicting scores and storing results
 function predictStep()
     
-    if strcmp(modelType, 'ecoli_model')
+    if strcmp(modelType, 'original_model') || strcmp(modelType, 'ecoli_model')
          [~,predicted_scores,~,sigma_delta_input] = indigo_predict(indigo_model, ...
           Xtest,input_type,'identifiers_match.xlsx','ecoli_phenotype_data_cell.xlsx');
     elseif strcmp(modelType, 'mtb_model')
