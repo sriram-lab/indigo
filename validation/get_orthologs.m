@@ -1,6 +1,6 @@
-function orthologs = get_orthologs(filename,modelType)
+function orthologs = get_orthologs(filename, modelType, dataLookup)
 
-data_table = readtable('all_data.xlsx');
+data_table = readtable(dataLookup);
 
 if strcmp(modelType, 'ecoli_model')
     orthology = data_table.EcoliOrthologs;

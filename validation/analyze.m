@@ -1,4 +1,4 @@
-function [stats,averages,overview] = analyze(indigoSummary,resultIndex)
+function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFiles)
 
     %{
     DESCRIPTION
@@ -38,14 +38,15 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex)
         filename = sprintf('%s_z', filename);
         sheetName = strcat(indigoSummary.valMethod,' (z)');
     end
-
-    resultsDirectory = strcat('results/v2/', indigoSummary.modelType, '/', indigoSummary.scoring, ...
-            '/', indigoSummary.valMethod, '/');
-        
+     
     if strcmp(indigoSummary.scoring,'bliss') || strcmp(indigoSummary.scoring,'loewe')
-        resultsFile = strcat('results/v2/', indigoSummary.modelType, '/', indigoSummary.scoring, ...
-            '/', indigoSummary.valMethod, '/', filename);
+        overviewFile = strcat('results/v2/', indigoSummary.modelType, '/', ...
+            indigoSummary.scoring, '/','overview_results.xlsx');
+        resultsFile = strcat('results/v2/', indigoSummary.modelType, '/', ...
+            indigoSummary.scoring, '/', indigoSummary.valMethod, '/', filename);
     else
+        overviewFile = strcat('results/v2/',indigoSummary.modelType, '/', ...
+            'overview_results.xlsx');
         resultsFile = strcat('results/v2/',indigoSummary.modelType, '/', ...
             indigoSummary.valMethod, '/', filename);
     end
@@ -214,13 +215,18 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex)
         writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)
     end
     
-    % Write results to overview file for better analysis
-    writetable(overviewTable,strcat(resultsDirectory,indigoSummary.modelType,'_overview_results.xlsx'), ...
-            'Sheet',sheetName,'Range',sprintf('B%d:L%d',resultIndex+1))
+    overviewTable = rows2vars(overviewTable,'VariableNamingRule','preserve');
+    overviewTable = overviewTable(:,2:end);    
+    
+    writecell(dataFiles, overviewFile, 'Sheet', sheetName, 'Range', ...
+        sprintf('A2:A%d', length(dataFiles) - 1))
+    writecell([{'Datasets'}, varnames], overviewFile, 'Sheet', sheetName, 'Range', 'A1:L1')
+    writetable(overviewTable, overviewFile, 'Sheet', sheetName, 'Range', ...
+        sprintf('B%d:L%d',resultIndex,11), 'WriteVariableNames',false)
 
     %% CLASSIFY SCORES
     function [Ytest, Ypred] = classifyScores(Ytest, Ypred)
-        [synergyCutoff, antagonismCutoff] = cutoffs(indigoSummary.testData);
+        [synergyCutoff, antagonismCutoff] = cutoffs(indigoSummary.testData, indigoSummary.dataLookup);
         %synergy - assign value = -1, but remember, synergy is good!
         Ytest(Ytest <= synergyCutoff) = -1;
         Ypred(Ypred <= synergyCutoff) = -1;

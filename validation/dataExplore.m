@@ -1,4 +1,4 @@
-function [summary,drugList] = dataExplore(filename)
+function [summary,drugList] = dataExplore(filename, dataLookup)
 
 fprintf(sprintf('Exploring data for %s\n',filename));
 
@@ -8,14 +8,14 @@ dataName = erase(filename,'.xlsx');
 summary = struct;
 
 
-[synergy,antagonism] = cutoffs(filename);
+[synergy,antagonism] = cutoffs(filename, dataLookup);
 
 data = readcell(filename);
 scores = cell2mat(data(:,end));
 drugs = data(:,1:end-1);
 
-ecoli_orthologs = get_orthologs(filename,1);
-mtb_orthologs = get_orthologs(filename,2);
+ecoli_orthologs = get_orthologs(filename, 'ecoli_model', dataLookup);
+mtb_orthologs = get_orthologs(filename, 'mtb_model', dataLookup);
 
 %Descriptive statistics
 summary.min = min(scores);

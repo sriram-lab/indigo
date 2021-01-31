@@ -1,8 +1,9 @@
-function indigoSummary = indigoRun(testData, trainingData, valMethod, ...
-    K, standardize,modelType,input_type, scoring)
+function indigoSummary = indigoRun(testData, trainingData, dataLookup, ... 
+    valMethod, K, standardize,modelType,input_type, scoring)
 arguments
     testData char
     trainingData = ''
+    dataLookup = ''
     valMethod char {mustBeMember(valMethod,{'Kfold', 'holdout', ...
                     'holdout_onself', 'Kfold_onself', ...
                     'independent'})} = 'Kfold'
@@ -87,6 +88,7 @@ indigoSummary.scoring = scoring;
 
 indigoSummary.testData = testData;
 indigoSummary.trainingData = trainingData;
+indigoSummary.dataLookup = dataLookup;
 
 % Read in the test data
 % Use readtable to handle missing values as {0x0 char}
@@ -100,7 +102,7 @@ if strcmp(standardize,'z_score')
 end
 
 %get orthologs for test file
-testOrthologs = get_orthologs(testData,modelType);
+testOrthologs = get_orthologs(testData, modelType, dataLookup);
 
 %{ 
 COMBINE TRAINING DATA FROM DIFFERENT DATA FILES TO GET OVERALL SIGMA DELTA 
