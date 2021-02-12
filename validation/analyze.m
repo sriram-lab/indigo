@@ -78,13 +78,13 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
             %correlation 
             [R,P] = corr(Ytest, Ypred,'type','Spearman');
             
-            [Ytest, Ypred] = classifyScores(Ytest,Ypred);   
+            [YtestClass, YpredClass] = classifyScores(Ytest,Ypred);   
             
             % 1 means analysis per subset
-            getStats(Ytest, Ypred, 1)
+            getStats(YtestClass, YpredClass, 1)
             
             nexttile
-            getROC(Ytest, Ypred, 1)
+            getROC(YtestClass, YpredClass, 1)
         end
         
         figFile = strcat(resultsFile,'_roc');
@@ -100,7 +100,7 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
         
         for i = 1:indigoSummary.K
             nexttile
-            getConfusion(Ytest, Ypred, 1)
+            getConfusion(YtestClass, YpredClass, 1)
         end
         
         figFile = strcat(resultsFile,'_cm');
@@ -138,19 +138,19 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
     
     [R,P] = corr(Ytest_total, Ypred_total,'type','Spearman');
 
-    [Ytest_total, Ypred_total] = classifyScores(Ytest_total, Ypred_total);   
+    [YtestClass_total, YpredClass_total] = classifyScores(Ytest_total, Ypred_total);   
 
     % 2 means analysis for all results combined
-    getStats(Ytest_total, Ypred_total, 2)
+    getStats(YtestClass_total, YpredClass_total, 2)
     f4 = figure(4);
     f4.Visible = 'off';
     t4 = tiledlayout(f4,3,1);
     title(t4,sprintf('Overall INDIGO Results for %s\n',dataName), ...
         'FontWeight','bold','Interpreter','none')
     nexttile
-    getROC(Ytest_total, Ypred_total, 2)    
+    getROC(YtestClass_total, YpredClass_total, 2)    
     nexttile
-    getConfusion(Ytest_total, Ypred_total, 2)
+    getConfusion(YtestClass_total, YpredClass_total, 2)
     nexttile
     getScatter(Ytest_total, Ypred_total, 2)  
     figFile = strcat(resultsFile,'_overall');
@@ -225,29 +225,28 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
         sprintf('B%d:L%d',resultIndex+1,resultIndex+1), 'WriteVariableNames',false)
 
     %% CLASSIFY SCORES
-    function [Ytest, Ypred] = classifyScores(Ytest, Ypred)
+    function [YtestClass, YpredClass] = classifyScores(Ytest, Ypred)
         [synergyCutoff, antagonismCutoff] = cutoffs(indigoSummary.testData, indigoSummary.dataLookup);
-        %synergy - assign value = -1, but remember, synergy is good!
-        Ytest(Ytest <= synergyCutoff) = -1;
-        Ypred(Ypred <= synergyCutoff) = -1;
-        %neutral - assign value = 0
-        Ytest(Ytest > synergyCutoff & Ytest < antagonismCutoff) = 0;
-        Ypred(Ypred > synergyCutoff & Ypred < antagonismCutoff) = 0;
-        %antagonism - assign value = 1, but remember, antagonism is bad!
-        Ytest(Ytest >= antagonismCutoff) = 1;
-        Ypred(Ypred >= antagonismCutoff) = 1;
+        YtestClass = zeros(length(Ytest),1);
+        YpredClass = zeros(length(Ypred),1);
+        %synergy - assign value = -1
+        YtestClass(Ytest <= synergyCutoff) = -1;
+        YpredClass(Ypred <= synergyCutoff) = -1;
+        %antagonism - assign value = 1
+        YtestClass(Ytest >= antagonismCutoff) = 1;
+        YpredClass(Ypred >= antagonismCutoff) = 1;
     end
 
     %% GET STATISTICS
-    function getStats(Ytest, Ypred, mode)
-        interactionCount = length(Ytest);
+    function getStats(YtestClass, YpredClass, mode)
+        interactionCount = length(YtestClass);
         %Get accuracy, precision and recall
-        accuracy = sum(Ypred == Ytest)/length(Ypred);
-        absError = mean(abs(Ypred-Ytest));
-        precisionSynergy = sum(Ypred == -1 & Ytest == -1)/sum(Ypred == -1);
-        recallSynergy = sum(Ypred == -1 & Ytest == -1)/sum(Ytest == -1);
-        precisionAntagonism = sum(Ypred == 1 & Ytest == 1)/sum(Ypred == 1);
-        recallAntagonism = sum(Ypred == 1 & Ytest == 1)/sum(Ytest == 1);
+        accuracy = sum(YpredClass == YtestClass)/length(YpredClass);
+        absError = mean(abs(YpredClass - YtestClass));
+        precisionSynergy = sum(YpredClass == -1 & YtestClass == -1)/sum(YpredClass == -1);
+        recallSynergy = sum(YpredClass == -1 & YtestClass == -1)/sum(YtestClass == -1);
+        precisionAntagonism = sum(YpredClass == 1 & YtestClass == 1)/sum(YpredClass == 1);
+        recallAntagonism = sum(YpredClass == 1 & YtestClass == 1)/sum(YtestClass == 1);
         
         if mode == 1
             stats.interactionCount(i,1) = interactionCount;
@@ -273,20 +272,20 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
     end
     
     %% ROC CURVES
-    function getROC(Ytest,Ypred,mode)
+    function getROC(YtestClass,YpredClass,mode)
         labels = {};  
-        if sum(Ytest == -1) > 0
+        if sum(YtestClass == -1) > 0
             %ROC Curve for synergy
-            [X_synergy,Y_synergy,T_synergy,AUC_synergy] = perfcurve(Ytest,Ypred,-1);
+            [X_synergy,Y_synergy,T_synergy,AUC_synergy] = perfcurve(YtestClass,YpredClass,-1);
             plot(X_synergy,Y_synergy)
             labels{end+1} = 'synergy';
         else
             AUC_synergy = nan;
         end
         hold on
-        if sum(Ytest == 1) > 0
+        if sum(YtestClass == 1) > 0
             %ROC Curve for antagonism
-            [X_antagonism,Y_antagonism,T_antagonism,AUC_antagonism] = perfcurve(Ytest,Ypred,1);
+            [X_antagonism,Y_antagonism,T_antagonism,AUC_antagonism] = perfcurve(YtestClass,YpredClass,1);
             plot(X_antagonism,Y_antagonism)
             labels{end+1} = 'antagonism';
         else
@@ -314,16 +313,16 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
     end
 
     %% CONFUSION MATRICES
-    function getConfusion(Ytest,Ypred,mode)
-        C = confusionmat(Ytest,Ypred);
+    function getConfusion(YtestClass,YpredClass,mode)
+        C = confusionmat(YtestClass,YpredClass);
         tempLabels = {};
-        if sum(Ytest == -1) > 0 || sum(Ypred == -1) > 0
+        if sum(YtestClass == -1) > 0 || sum(YpredClass == -1) > 0
             tempLabels{end+1} = 'synergistic';
         end
-        if sum(Ytest == 0) > 0 || sum(Ypred == 0) > 0
+        if sum(YtestClass == 0) > 0 || sum(YpredClass == 0) > 0
             tempLabels{end+1} = 'neutral';
         end
-        if sum(Ytest == 1) > 0 || sum(Ypred == 1) > 0
+        if sum(YtestClass == 1) > 0 || sum(YpredClass == 1) > 0
             tempLabels{end+1}  = 'antagonistic';
         end
         cats = categorical(tempLabels);
@@ -343,10 +342,10 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
     function getScatter(Ytest,Ypred,mode)
         % Scatter plot with line of best fit
         % Rank sorted - larger rank means bigger value
-        [Ytest_sorted,I_test] = sort(Ytest);
+        [~,I_test] = sort(Ytest);
         Ytest_rank = zeros(1,length(Ytest));
         Ytest_rank(I_test) = 1:length(Ytest);
-        [Ypred_sorted,I_pred] = sort(Ypred);
+        [~,I_pred] = sort(Ypred);
         Ypred_rank = zeros(1,length(Ytest));
         Ypred_rank(I_pred) = 1:length(Ypred);
         
