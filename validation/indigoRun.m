@@ -325,7 +325,7 @@ elseif strcmp(valMethod,'Kfold')
         Ytrain = scores(train);
         Xtest = interactions(test,:);
         Ytest = scores(test);
-        
+        disp(length(Ytest))
         if strcmp(modelType, 'original_model') || strcmp(modelType, 'ecoli_model')
             [~,~,~,sigma_delta_scores] = indigo_predict(indigo_model,Xtrain, ...
              input_type,annotation_file,chemogenomics_file);
@@ -354,6 +354,7 @@ end
 
 % nested function for predicting scores and storing results
 function predictStep()
+    disp(length(Ytest))
     
     if strcmp(modelType, 'original_model') || strcmp(modelType, 'ecoli_model')
          [~,predicted_scores,~,sigma_delta_input] = indigo_predict(indigo_model, ...

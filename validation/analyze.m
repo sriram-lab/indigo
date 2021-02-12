@@ -58,9 +58,9 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
     
     %% SUBSET DATA FOR KFOLD CV
     if strcmp(indigoSummary.valMethod,'Kfold_onself') || strcmp(indigoSummary.valMethod,'Kfold')
+        drugs_total = [];
         Ytest_total = [];
         Ypred_total = [];
-        drugs_total = [];
         
         f1 = figure(1);
         f1.Visible = 'off';
@@ -275,7 +275,7 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
     %% ROC CURVES
     function getROC(Ytest,Ypred,mode)
         labels = {};  
-        if sum(Ytest == -1) > 0  && (sum(Ytest == 0) > 0 || sum(Ytest == 1) > 0)
+        if sum(Ytest == -1) > 0
             %ROC Curve for synergy
             [X_synergy,Y_synergy,T_synergy,AUC_synergy] = perfcurve(Ytest,Ypred,-1);
             plot(X_synergy,Y_synergy)
@@ -284,7 +284,7 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
             AUC_synergy = nan;
         end
         hold on
-        if sum(Ytest == 1) > 0 && (sum(Ytest == 0) > 0 || sum(Ytest == -1) > 0)
+        if sum(Ytest == 1) > 0
             %ROC Curve for antagonism
             [X_antagonism,Y_antagonism,T_antagonism,AUC_antagonism] = perfcurve(Ytest,Ypred,1);
             plot(X_antagonism,Y_antagonism)
