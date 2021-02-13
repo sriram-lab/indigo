@@ -1,10 +1,10 @@
 %Find overlap with other files
-function sharedSynergy = synergy_overlap(files)
+function shared_synergy = synergy_overlap(files)
 arguments
     files cell
 end
 
-sharedSynergy = cell(length(files));
+shared_synergy = cell(length(files));
 
 for i = 1:length(files)
     [synergy_scores_A, synergy_interactions_A] = find_synergy(files{i});
@@ -27,11 +27,11 @@ for i = 1:length(files)
            
             %Write this to an excel file!
             if ~isempty(drugsShared)
-                drugsShared_fullnames = get_fullnames(drugsShared);
-                output = [cellstr(drugsShared),drugsShared_fullnames, num2cell(synergy_scores_A_final),num2cell(synergy_scores_B_final)];
-                sheetName = sprintf('%s_%s', erase(files{i},'.xlsx'),erase(files{j},'.xlsx'));
-                writecell(output,'synergy_interactions.xlsx','Sheet',sheetName);
-                sharedSynergy{i,j} = output;
+                drugs_shared_fullnames = get_fullnames(drugsShared);
+                output = [cellstr(drugsShared),drugs_shared_fullnames, num2cell(synergy_scores_A_final),num2cell(synergy_scores_B_final)];
+                sheet_name = sprintf('%s_%s', erase(files{i},'.xlsx'),erase(files{j},'.xlsx'));
+                writecell(output,'synergy_interactions.xlsx','Sheet',sheet_name);
+                shared_synergy{i,j} = output;
             end    
         end
     end

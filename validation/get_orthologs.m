@@ -1,20 +1,20 @@
-function orthologs = get_orthologs(filename, modelType, dataLookup)
+function orthologs = get_orthologs(filename, model_type, data_lookup)
 
-data_table = readtable(dataLookup);
+data_table = readtable(data_lookup);
 
-if strcmp(modelType, 'original_model') || strcmp(modelType, 'ecoli_model')
-    orthology = data_table.EcoliOrthologs;
+if strcmp(model_type, 'original_model') || strcmp(model_type, 'ecoli_model')
+    orthology = data_table.Ecoli_Orthologs;
 elseif strcmp(modelType, 'mtb_model')
-    orthology = data_table.MtbOrthologs;
+    orthology = data_table.Mtb_Orthologs;
 end
 
 
 idx = find(strcmp(filename, data_table.Filename));
 
-orthologyFile = orthology{idx};
+orthology_file = orthology{idx};
 
-if ~isempty(orthologyFile)
-    orthologs = readcell(orthologyFile);
+if ~isempty(orthology_file)
+    orthologs = readcell(orthology_file);
 else
     orthologs = '';
     

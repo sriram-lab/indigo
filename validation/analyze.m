@@ -1,4 +1,4 @@
-function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFiles)
+function [stats,averages,overview] = analyze(indigo_summary,result_index, data_files)
 
     %{
     DESCRIPTION
@@ -30,34 +30,34 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
     %}
 
     %% Structure naming for output files and figures
-    dataName = erase(indigoSummary.testData,'.xlsx');
+    dataname = erase(indigo_summary.test_data,'.xlsx');
     
-    filename = strcat(erase(indigoSummary.testData,'.xlsx'),'_',indigoSummary.valMethod);
-    sheetName = indigoSummary.valMethod;
-    if strcmp(indigoSummary.standardize,'z_score')
+    filename = strcat(erase(indigo_summary.test_data,'.xlsx'),'_',indigo_summary.valmethod);
+    sheetname = indigo_summary.valmethod;
+    if strcmp(indigo_summary.standardize,'z_score')
         filename = sprintf('%s_z', filename);
-        sheetName = strcat(indigoSummary.valMethod,' (z)');
+        sheetname = strcat(indigo_summary.valmethod,' (z)');
     end
      
-    if strcmp(indigoSummary.scoring,'bliss') || strcmp(indigoSummary.scoring,'loewe')
-        overviewFile = strcat('results/v2/', indigoSummary.modelType, '/', ...
-            indigoSummary.scoring, '/','overview_results.xlsx');
-        resultsFile = strcat('results/v2/', indigoSummary.modelType, '/', ...
-            indigoSummary.scoring, '/', indigoSummary.valMethod, '/', filename);
+    if strcmp(indigo_summary.scoring,'bliss') || strcmp(indigo_summary.scoring,'loewe')
+        overview_file = strcat('results/v2/', indigo_summary.model_type, '/', ...
+            indigo_summary.scoring, '/','overview_results.xlsx');
+        results_file = strcat('results/v2/', indigo_summary.model_type, '/', ...
+            indigo_summary.scoring, '/', indigo_summary.valmethod, '/', filename);
     else
-        overviewFile = strcat('results/v2/',indigoSummary.modelType, '/', ...
+        overview_file = strcat('results/v2/',indigo_summary.model_type, '/', ...
             'overview_results.xlsx');
-        resultsFile = strcat('results/v2/',indigoSummary.modelType, '/', ...
-            indigoSummary.valMethod, '/', filename);
+        results_file = strcat('results/v2/',indigo_summary.model_type, '/', ...
+            indigo_summary.valmethod, '/', filename);
     end
     
     %% Process results
-    fprintf(sprintf('Results for %s',dataName))
+    fprintf(sprintf('Results for %s',dataname))
     stats = struct;
     averages = struct;
     
     %% SUBSET DATA FOR KFOLD CV
-    if strcmp(indigoSummary.valMethod,'Kfold_onself') || strcmp(indigoSummary.valMethod,'Kfold')
+    if strcmp(indigo_summary.valmethod,'Kfold_onself') || strcmp(indigo_summary.valmethod,'Kfold')
         drugs_total = [];
         Ytest_total = [];
         Ypred_total = [];
@@ -65,69 +65,69 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
         f1 = figure(1);
         f1.Visible = 'off';
         t1 = tiledlayout(f1,3,2);
-        title(t1,sprintf('ROC Curves for %s\n', dataName), ...
+        title(t1,sprintf('ROC Curves for %s\n', dataname), ...
               'FontWeight','bold', 'Interpreter', 'None')
         
-        for i = 1:indigoSummary.K
-            drugs_total = [drugs_total; indigoSummary.testPairs{i}];
-            Ytest_total = [Ytest_total; indigoSummary.testScores{i}];
-            Ypred_total = [Ypred_total; indigoSummary.predictedScores{i}];
-            Ytest = indigoSummary.testScores{i};
-            Ypred = indigoSummary.predictedScores{i};
+        for i = 1:indigo_summary.K
+            drugs_total = [drugs_total; indigo_summary.testPairs{i}];
+            Ytest_total = [Ytest_total; indigo_summary.testScores{i}];
+            Ypred_total = [Ypred_total; indigo_summary.predictedScores{i}];
+            Ytest = indigo_summary.testScores{i};
+            Ypred = indigo_summary.predictedScores{i};
             
             %correlation 
             [R,P] = corr(Ytest, Ypred,'type','Spearman');
             
-            [YtestClass, YpredClass] = classifyScores(Ytest,Ypred);   
+            [Ytest_class, Ypred_class] = classify_scores(Ytest,Ypred);   
             
             % 1 means analysis per subset
-            getStats(YtestClass, YpredClass, 1)
+            get_stats(Ytest_class, Ypred_class, 1)
             
             nexttile
-            getROC(YtestClass, YpredClass, 1)
+            get_roc(Ytest_class, Ypred_class, 1)
         end
         
-        figFile = strcat(resultsFile,'_roc');
-        saveas(f1,figFile,'fig') 
-        saveas(f1,figFile,'png')
+        fig_file = strcat(results_file,'_roc');
+        saveas(f1,fig_file,'fig') 
+        saveas(f1,fig_file,'png')
         close(f1)
         
         f2 = figure(2);
         f2.Visible = 'off';
         t2 = tiledlayout(f2,3,2);
-        title(t2, sprintf('Confusion Matrices for %s\n', dataName), ...
+        title(t2, sprintf('Confusion Matrices for %s\n', dataname), ...
               'FontWeight','bold','Interpreter','None')
         
-        for i = 1:indigoSummary.K
+        for i = 1:indigo_summary.K
             nexttile
-            getConfusion(YtestClass, YpredClass, 1)
+            get_confusion(Ytest_class, Ypred_class, 1)
         end
         
-        figFile = strcat(resultsFile,'_cm');
-        saveas(f2,figFile,'fig')
-        saveas(f2,figFile,'png')
+        fig_file = strcat(results_file,'_cm');
+        saveas(f2,fig_file,'fig')
+        saveas(f2,fig_file,'png')
         close(f2)
         
         f3 = figure(3);
         f3.Visible = 'off';
         t3 = tiledlayout(f3,3,2);
-        title(t3, sprintf('Scatter Plots (Ranked Sorted) for %s\n', dataName), ...
+        title(t3, sprintf('Scatter Plots (Ranked Sorted) for %s\n', dataname), ...
               'FontWeight','bold','Interpreter','None')
         
-        for i = 1:indigoSummary.K     
+        for i = 1:indigo_summary.K     
             nexttile
-            getScatter(Ytest, Ypred, 1)  
+            get_scatter(Ytest, Ypred, 1)  
         end
         
-        figFile = strcat(resultsFile,'_sc');
-        saveas(f3,figFile,'fig')
-        saveas(f3,figFile,'png')
+        fig_file = strcat(results_file,'_sc');
+        saveas(f3,fig_file,'fig')
+        saveas(f3,fig_file,'png')
         close(f3)
         
     else
-        drugs_total = [indigoSummary.testPairs{1}];
-        Ytest_total = [indigoSummary.testScores{1}];
-        Ypred_total = [indigoSummary.predictedScores{1}];
+        drugs_total = [indigo_summary.testPairs{1}];
+        Ytest_total = [indigo_summary.testScores{1}];
+        Ypred_total = [indigo_summary.predictedScores{1}];
     end
 
     %% OVERALL DATA - ALL RESULTS COMBINED
@@ -138,24 +138,24 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
     
     [R,P] = corr(Ytest_total, Ypred_total,'type','Spearman');
 
-    [YtestClass_total, YpredClass_total] = classifyScores(Ytest_total, Ypred_total);   
+    [Ytest_class_total, Ypred_class_total] = classify_scores(Ytest_total, Ypred_total);   
 
     % 2 means analysis for all results combined
-    getStats(YtestClass_total, YpredClass_total, 2)
+    get_stats(Ytest_class_total, Ypred_class_total, 2)
     f4 = figure(4);
     f4.Visible = 'off';
     t4 = tiledlayout(f4,3,1);
-    title(t4,sprintf('Overall INDIGO Results for %s\n',dataName), ...
+    title(t4,sprintf('Overall INDIGO Results for %s\n',dataname), ...
         'FontWeight','bold','Interpreter','none')
     nexttile
-    getROC(YtestClass_total, YpredClass_total, 2)    
+    get_roc(Ytest_class_total, Ypred_class_total, 2)    
     nexttile
-    getConfusion(YtestClass_total, YpredClass_total, 2)
+    get_confusion(Ytest_class_total, Ypred_class_total, 2)
     nexttile
-    getScatter(Ytest_total, Ypred_total, 2)  
-    figFile = strcat(resultsFile,'_overall');
-    saveas(f4,figFile,'fig')
-    saveas(f4,figFile,'png')
+    get_scatter(Ytest_total, Ypred_total, 2)  
+    fig_file = strcat(results_file,'_overall');
+    saveas(f4,fig_file,'fig')
+    saveas(f4,fig_file,'png')
     close(f4)
 
     %% FORMAT TABLES
@@ -172,14 +172,14 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
                     'AUC - ROC (synergy)', ...
                     'AUC - ROC (antagonism)'};
                 
-    if strcmp(indigoSummary.valMethod,'Kfold_onself') || strcmp(indigoSummary.valMethod,'Kfold')
-        resultsTable = struct2table(stats);
-        resultsTable.Properties.VariableNames = varnames;
-        rownames = cell(1,indigoSummary.K);
-        for i = 1:indigoSummary.K
+    if strcmp(indigo_summary.valmethod,'Kfold_onself') || strcmp(indigo_summary.valmethod,'Kfold')
+        results_table = struct2table(stats);
+        results_table.Properties.VariableNames = varnames;
+        rownames = cell(1,indigo_summary.K);
+        for i = 1:indigo_summary.K
             rownames{i} = sprintf('Subset %d', i);
         end
-        resultsTable.Properties.RowNames = rownames;
+        results_table.Properties.RowNames = rownames;
 
         fields = fieldnames(stats);
         tableArray = zeros(length(fields),1);
@@ -187,9 +187,9 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
             averages.(fields{i}) = mean(stats.(fields{i}));
             tableArray(i) = mean(stats.(fields{i}));
         end
-        averagesTable = table(tableArray);
-        averagesTable.Properties.RowNames = varnames; 
-        averagesTable.Properties.VariableNames = {'Value'};
+        averages_table = table(tableArray);
+        averages_table.Properties.RowNames = varnames; 
+        averages_table.Properties.VariableNames = {'Value'};
     end
 
     fields = fieldnames(overview);
@@ -197,95 +197,95 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
     for i = 4:length(fields)
         tableArray(i-3) = overview.(fields{i});
     end
-    overviewTable = table(tableArray);
-    overviewTable.Properties.RowNames = varnames;
-    overviewTable.Properties.VariableNames = {'Value'};
+    overview_table = table(tableArray);
+    overview_table.Properties.RowNames = varnames;
+    overview_table.Properties.VariableNames = {'Value'};
     
     %% Display analysis and save to .xlsx files
 
-    if strcmp(indigoSummary.valMethod,'Kfold_onself') || strcmp(indigoSummary.valMethod,'Kfold')
-        resultsTable
-        averagesTable
-        overviewTable
-        writetable(resultsTable,strcat(resultsFile,'.xlsx'),'Sheet','results','WriteRowNames',true)
-        writetable(averagesTable,strcat(resultsFile,'.xlsx'),'Sheet','averages','WriteRowNames',true)
-        writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)  
+    if strcmp(indigo_summary.valmethod,'Kfold_onself') || strcmp(indigo_summary.valmethod,'Kfold')
+        results_table
+        averages_table
+        overview_table
+        writetable(results_table,strcat(results_file,'.xlsx'),'Sheet','results','WriteRowNames',true)
+        writetable(averages_table,strcat(results_file,'.xlsx'),'Sheet','averages','WriteRowNames',true)
+        writetable(overview_table,strcat(results_file,'.xlsx'),'Sheet','overview','WriteRowNames',true)  
     else
-        overviewTable
-        writetable(overviewTable,strcat(resultsFile,'.xlsx'),'Sheet','overview','WriteRowNames',true)
+        overview_table
+        writetable(overview_table,strcat(results_file,'.xlsx'),'Sheet','overview','WriteRowNames',true)
     end
     
-    overviewTable = rows2vars(overviewTable,'VariableNamingRule','preserve');
-    overviewTable = overviewTable(:,2:end);    
+    overview_table = rows2vars(overview_table,'VariableNamingRule','preserve');
+    overview_table = overview_table(:,2:end);    
     
-    writecell(dataFiles, overviewFile, 'Sheet', sheetName, 'Range', ...
-        sprintf('A2:A%d', length(dataFiles)+1))
-    writecell([{'Datasets'}, varnames], overviewFile, 'Sheet', sheetName, 'Range', 'A1:L1')
-    writetable(overviewTable, overviewFile, 'Sheet', sheetName, 'Range', ...
-        sprintf('B%d:L%d',resultIndex+1,resultIndex+1), 'WriteVariableNames',false)
+    writecell(data_files, overview_file, 'Sheet', sheetname, 'Range', ...
+        sprintf('A2:A%d', length(data_files)+1))
+    writecell([{'Datasets'}, varnames], overview_file, 'Sheet', sheetname, 'Range', 'A1:L1')
+    writetable(overview_table, overview_file, 'Sheet', sheetname, 'Range', ...
+        sprintf('B%d:L%d',result_index+1,result_index+1), 'WriteVariableNames',false)
 
     %% CLASSIFY SCORES
-    function [YtestClass, YpredClass] = classifyScores(Ytest, Ypred)
-        [synergyCutoff, antagonismCutoff] = cutoffs(indigoSummary.testData, indigoSummary.dataLookup);
-        YtestClass = zeros(length(Ytest),1);
-        YpredClass = zeros(length(Ypred),1);
+    function [Ytest_class, Ypred_class] = classify_scores(Ytest, Ypred)
+        [synergy_cutoff, antagonism_cutoff] = cutoffs(indigo_summary.test_data, indigo_summary.data_lookup);
+        Ytest_class = zeros(length(Ytest),1);
+        Ypred_class = zeros(length(Ypred),1);
         %synergy - assign value = -1
-        YtestClass(Ytest <= synergyCutoff) = -1;
-        YpredClass(Ypred <= synergyCutoff) = -1;
+        Ytest_class(Ytest <= synergy_cutoff) = -1;
+        Ypred_class(Ypred <= synergy_cutoff) = -1;
         %antagonism - assign value = 1
-        YtestClass(Ytest >= antagonismCutoff) = 1;
-        YpredClass(Ypred >= antagonismCutoff) = 1;
+        Ytest_class(Ytest >= antagonism_cutoff) = 1;
+        Ypred_class(Ypred >= antagonism_cutoff) = 1;
     end
 
     %% GET STATISTICS
-    function getStats(YtestClass, YpredClass, mode)
-        interactionCount = length(YtestClass);
+    function get_stats(Ytest_class, Ypred_class, mode)
+        interaction_count = length(Ytest_class);
         %Get accuracy, precision and recall
-        accuracy = sum(YpredClass == YtestClass)/length(YpredClass);
-        absError = mean(abs(YpredClass - YtestClass));
-        precisionSynergy = sum(YpredClass == -1 & YtestClass == -1)/sum(YpredClass == -1);
-        recallSynergy = sum(YpredClass == -1 & YtestClass == -1)/sum(YtestClass == -1);
-        precisionAntagonism = sum(YpredClass == 1 & YtestClass == 1)/sum(YpredClass == 1);
-        recallAntagonism = sum(YpredClass == 1 & YtestClass == 1)/sum(YtestClass == 1);
+        accuracy = sum(Ypred_class == Ytest_class)/length(Ypred_class);
+        abs_error = mean(abs(Ypred_class - Ytest_class));
+        precision_synergy = sum(Ypred_class == -1 & Ytest_class == -1)/sum(Ypred_class == -1);
+        recall_synergy = sum(Ypred_class == -1 & Ytest_class == -1)/sum(Ytest_class == -1);
+        precision_antagonism = sum(Ypred_class == 1 & Ytest_class == 1)/sum(Ypred_class == 1);
+        recall_antagonism = sum(Ypred_class == 1 & Ytest_class == 1)/sum(Ytest_class == 1);
         
         if mode == 1
-            stats.interactionCount(i,1) = interactionCount;
-            stats.rankCorr(i,1) = R;
-            stats.pValue(i,1) = P;
+            stats.interaction_count(i,1) = interaction_count;
+            stats.rank_corr(i,1) = R;
+            stats.p_value(i,1) = P;
             stats.accuracy(i,1) = accuracy;
-            stats.absError(i,1) = absError;
-            stats.precisionSynergy(i,1) = precisionSynergy;
-            stats.recallSynergy(i,1) = recallSynergy;
-            stats.precisionAntagonism(i,1) = precisionAntagonism;
-            stats.recallAntagonism(i,1) = recallAntagonism;
+            stats.abs_error(i,1) = abs_error;
+            stats.precision_synergy(i,1) = precision_synergy;
+            stats.recall_synergy(i,1) = recall_synergy;
+            stats.precision_antagonism(i,1) = precision_antagonism;
+            stats.recall_antagonism(i,1) = recall_antagonism;
         else
-            overview.interactionCount = interactionCount;
-            overview.rankCorr = R;
-            overview.pValue = P;
+            overview.interaction_count = interaction_count;
+            overview.rank_corr = R;
+            overview.p_value = P;
             overview.accuracy = accuracy;
-            overview.absError = absError;
-            overview.precisionSynergy = precisionSynergy;
-            overview.recallSynergy = recallSynergy;
-            overview.precisionAntagonism = precisionAntagonism;
-            overview.recallAntagonism = recallAntagonism;
+            overview.abs_error = abs_error;
+            overview.precision_synergy = precision_synergy;
+            overview.recall_synergy = recall_synergy;
+            overview.precision_antagonism = precision_antagonism;
+            overview.recall_antagonism = recall_antagonism;
         end
     end
     
     %% ROC CURVES
-    function getROC(YtestClass,YpredClass,mode)
+    function get_roc(Ytest_class,Ypred_class,mode)
         labels = {};  
-        if sum(YtestClass == -1) > 0
+        if sum(Ytest_class == -1) > 0
             %ROC Curve for synergy
-            [X_synergy,Y_synergy,T_synergy,AUC_synergy] = perfcurve(YtestClass,YpredClass,-1);
+            [X_synergy,Y_synergy,T_synergy,AUC_synergy] = perfcurve(Ytest_class,Ypred_class,-1);
             plot(X_synergy,Y_synergy)
             labels{end+1} = 'synergy';
         else
             AUC_synergy = nan;
         end
         hold on
-        if sum(YtestClass == 1) > 0
+        if sum(Ytest_class == 1) > 0
             %ROC Curve for antagonism
-            [X_antagonism,Y_antagonism,T_antagonism,AUC_antagonism] = perfcurve(YtestClass,YpredClass,1);
+            [X_antagonism,Y_antagonism,T_antagonism,AUC_antagonism] = perfcurve(Ytest_class,Ypred_class,1);
             plot(X_antagonism,Y_antagonism)
             labels{end+1} = 'antagonism';
         else
@@ -313,16 +313,16 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
     end
 
     %% CONFUSION MATRICES
-    function getConfusion(YtestClass,YpredClass,mode)
-        C = confusionmat(YtestClass,YpredClass);
+    function get_confusion(Ytest_class,Ypred_class,mode)
+        C = confusionmat(Ytest_class,Ypred_class);
         tempLabels = {};
-        if sum(YtestClass == -1) > 0 || sum(YpredClass == -1) > 0
+        if sum(Ytest_class == -1) > 0 || sum(Ypred_class == -1) > 0
             tempLabels{end+1} = 'synergistic';
         end
-        if sum(YtestClass == 0) > 0 || sum(YpredClass == 0) > 0
+        if sum(Ytest_class == 0) > 0 || sum(Ypred_class == 0) > 0
             tempLabels{end+1} = 'neutral';
         end
-        if sum(YtestClass == 1) > 0 || sum(YpredClass == 1) > 0
+        if sum(Ytest_class == 1) > 0 || sum(Ypred_class == 1) > 0
             tempLabels{end+1}  = 'antagonistic';
         end
         cats = categorical(tempLabels);
@@ -339,7 +339,7 @@ function [stats,averages,overview] = analyze(indigoSummary,resultIndex, dataFile
     end
 
     %% SCATTER PLOTS
-    function getScatter(Ytest,Ypred,mode)
+    function get_scatter(Ytest,Ypred,mode)
         % Scatter plot with line of best fit
         % Rank sorted - larger rank means bigger value
         [~,I_test] = sort(Ytest);

@@ -29,8 +29,8 @@ for i = 1:length(files)
             if ~isempty(drugsShared)
                 drugsShared_fullnames = get_fullnames(drugsShared);
                 output = [cellstr(drugsShared),drugsShared_fullnames, num2cell(antagonism_scores_A_final),num2cell(antagonism_scores_B_final)];
-                sheetName = sprintf('%s_%s', erase(files{i},'.xlsx'),erase(files{j},'.xlsx'));
-                writecell(output,'antagonism_interactions.xlsx','Sheet',sheetName);
+                sheetname = sprintf('%s_%s', erase(files{i},'.xlsx'),erase(files{j},'.xlsx'));
+                writecell(output,'antagonism_interactions.xlsx','Sheet',sheetname);
                 sharedAntagonism{i,j} = output;
             end    
         end

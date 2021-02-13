@@ -36,14 +36,14 @@ function [deviations, teststaphdat1] = indigo_orthology(phenotype_labels,ecoli_s
     nic_row = [phenotype_labels; phenotype_labels];
     ix = ismember(nic_row, ecoli_staph_orth); % find the orthologs
     nonorthtop = nic_row(~ix);                % get the non-orthologs
-    teststaphdat = sigma_delta_input; 
-    teststaphdat(~ix,:) = 0;                  % modfiy state of non-orthologs
+%     teststaphdat = sigma_delta_input; 
+%     teststaphdat(~ix,:) = 0;                  % modfiy state of non-orthologs
     % Set the sigma scores to be 2 or 0
     ix2 = ismember(phenotype_labels,nonorthtop);
     ix2 = find(ix2);
     teststaphdat1 = sigma_delta_input;
-    teststaphdat1(ix2,:) = 2;
-    teststaphdat1(ix2 + length(phenotype_labels),:) = 0;
+    teststaphdat1(ix2,:) = 2;   
+    teststaphdat1(ix2 + length(phenotype_labels),:) = 0; 
     %% DETERMINE PREDICTED VARIABLE INTERACTIONS B/T SPECIES
     testpredictions_staphchem_ecolixns2 = predict(indigo_model,teststaphdat1');
     testpredictions_staphchem_ecolixns20 = predict(indigo_model,sigma_delta_input');

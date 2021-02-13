@@ -1,4 +1,4 @@
-function sharedInteractions = dataCompare(files)
+function shared_interactions = data_compare(files)
 arguments
     files cell
 end
@@ -12,8 +12,8 @@ names = erase(files,'.xlsx');
 %initialize arrays for storing comparison results
 R_values = zeros(length(files));
 P_values = zeros(length(files));
-interactionCounts = zeros(length(files));
-sharedInteractions = cell(length(files));
+interaction_counts = zeros(length(files));
+shared_interactions = cell(length(files));
 
 %it doesn't matter whether A or B is bigger file
 for i = 1:length(files)
@@ -34,14 +34,14 @@ for i = 1:length(files)
             A_scores_final = A_scores(Lia);
             Locb = nonzeros(Locb); 
             B_scores_final = B_scores(Locb);
-            drugsShared = A_drugs(Lia,:);
-            if ~isempty(drugsShared)
-                interactionCounts(i,j) = length(drugsShared);
-                sharedInteractions{i,j} = {drugsShared,A_scores_final,B_scores_final};
+            drugs_shared = A_drugs(Lia,:);
+            if ~isempty(drugs_shared)
+                interaction_counts(i,j) = length(drugs_shared);
+                shared_interactions{i,j} = {drugs_shared,A_scores_final,B_scores_final};
                 %Show interactions in a table
-                T = table(drugsShared(:,1),drugsShared(:,2),A_scores_final,B_scores_final);
+                T = table(drugs_shared(:,1),drugs_shared(:,2),A_scores_final,B_scores_final);
                 T.Properties.VariableNames = {'Drug 1','Drug 2',A_label,B_label};
-                sharedInteractionsPreview = head(T)
+                shared_interactions_preview = head(T)
                 [R_values(i,j),P_values(i,j)] = corr(A_scores_final, B_scores_final,'type','Spearman');
             else
                 %if there are no shared interactions
@@ -52,9 +52,9 @@ for i = 1:length(files)
 end
 %tables
 %number of shared drug pairs
-interactionCounts = array2table(interactionCounts);
-interactionCounts.Properties.VariableNames = names;
-interactionCounts.Properties.RowNames = names;
+interaction_counts = array2table(interaction_counts);
+interaction_counts.Properties.VariableNames = names;
+interaction_counts.Properties.RowNames = names;
 
 %correlation values and significance for shared interactions
 R_values = array2table(R_values);
@@ -65,7 +65,7 @@ P_values.Properties.VariableNames = names;
 P_values.Properties.RowNames = names;
 
 %show tables
-interactionCounts
+interaction_counts
 R_values
 P_values
 end

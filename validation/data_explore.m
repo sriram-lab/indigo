@@ -1,21 +1,21 @@
-function [summary,drugList] = dataExplore(filename, dataLookup)
+function [summary,drug_list] = data_explore(filename, data_lookup)
 
     fprintf(sprintf('Exploring data for %s\n',filename));
 
     figure
     % filename = strcat("/indigoData/",filename);
-    dataName = erase(filename,'.xlsx');
+    data_name = erase(filename,'.xlsx');
     summary = struct;
 
 
-    [synergy,antagonism] = cutoffs(filename, dataLookup);
+    [synergy,antagonism] = cutoffs(filename, data_lookup);
 
     data = readtable(filename,"ReadVariableNames",false);
     scores = data{:,end};
     drugs = data{:,1:end-1};
 
-    ecoli_orthologs = get_orthologs(filename, 'ecoli_model', dataLookup);
-    mtb_orthologs = get_orthologs(filename, 'mtb_model', dataLookup);
+    ecoli_orthologs = get_orthologs(filename, 'ecoli_model', data_lookup);
+    mtb_orthologs = get_orthologs(filename, 'mtb_model', data_lookup);
 
     %Descriptive statistics
     summary.min = min(scores);
@@ -24,36 +24,36 @@ function [summary,drugList] = dataExplore(filename, dataLookup)
     summary.range = range(scores);
     summary.mean = mean(scores);
     summary.std = std(scores);
-    summary.interactionCount = length(scores);
-    summary.synergyCount = sum((scores <= synergy));
-    summary.antagonismCount = sum((scores >= antagonism));
-    summary.neutralCount = sum((scores > synergy & scores < antagonism));
-    summary.ecoliOrthologCount = length(ecoli_orthologs);
-    summary.mtbOrthologCount = length(mtb_orthologs);
+    summary.interaction_count = length(scores);
+    summary.synergy_count = sum((scores <= synergy));
+    summary.antagonism_count = sum((scores >= antagonism));
+    summary.neutral_count = sum((scores > synergy & scores < antagonism));
+    summary.ecoli_ortholog_count = length(ecoli_orthologs);
+    summary.mtb_ortholog_count = length(mtb_orthologs);
 
     %Anderson Darling Normality test, if h = 1 and p < 0.05, then scores is not
     %normal
-    [summary.rejectNormality,summary.pNormality] = adtest(scores);
+    [summary.reject_normality,summary.p_normality] = adtest(scores);
     %list of unique drugs used
-    drugList = [];
+    drug_list = [];
     for i = 1:size(drugs,2)
-        drugList = [drugList; drugs(:,i)];
+        drug_list = [drug_list; drugs(:,i)];
     end
-    drugList(~cellfun('isempty',drugList));
-    drugList = unique(drugList)
-    summary.uniqueDrugs = length(drugList);
-    summaryTable = struct2table(summary);
-    summaryTable
+    drug_list(~cellfun('isempty',drug_list));
+    drug_list = unique(drug_list)
+    summary.uniqueDrugs = length(drug_list);
+    summary_table = struct2table(summary);
+    summary_table
 
-    sgtitle(sprintf('Data exploration of %s', dataName),'Interpreter','none');
+    sgtitle(sprintf('Data exploration of %s', data_name),'Interpreter','none');
     subplot(2,2,1)
     histogram(scores)
     xlabel('Interaction scores')
     ylabel('Frequency')
 
     hold on
-    normScores = zscore(scores);
-    histogram(normScores)
+    norm_scores = zscore(scores);
+    histogram(norm_scores)
     hold off
     legend('original scores','z-scores')
     subplot(2,2,2)
@@ -63,7 +63,7 @@ function [summary,drugList] = dataExplore(filename, dataLookup)
     subplot(2,2,3)
 
     boxplot(scores)
-    xlabel(dataName,'Interpreter','none')
+    xlabel(data_name,'Interpreter','none')
     ylabel('interaction scores')
     hold on 
     x = ones(length(scores),1);
