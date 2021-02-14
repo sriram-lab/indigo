@@ -20,7 +20,7 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
     I/O
     
     REQUIRED INPUTS:
-      1. indigoSummary:     INDIGO model, predicted scores, validation method 
+      1. indigo_summary:     INDIGO model, predicted scores, validation method 
     OUTPUTS:
       1. stats:             Statistical measures for each subset of 
                             validation results. Only present when K > 1.           
@@ -38,7 +38,7 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
         filename = sprintf('%s_z', filename);
         sheetname = strcat(indigo_summary.valmethod,' (z)');
     end
-     
+
     if strcmp(indigo_summary.scoring,'bliss') || strcmp(indigo_summary.scoring,'loewe')
         overview_file = strcat('results/v2/', indigo_summary.model_type, '/', ...
             indigo_summary.scoring, '/','overview_results.xlsx');
@@ -56,12 +56,11 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
     stats = struct;
     averages = struct;
     
+    drugs_total = [];
+    Ytest_total = [];
+    Ypred_total = [];
     %% SUBSET DATA FOR KFOLD CV
-    if strcmp(indigo_summary.valmethod,'Kfold_onself') || strcmp(indigo_summary.valmethod,'Kfold')
-        drugs_total = [];
-        Ytest_total = [];
-        Ypred_total = [];
-        
+    if strcmp(indigo_summary.valmethod,'Kfold_onself') || strcmp(indigo_summary.valmethod,'Kfold')    
         f1 = figure(1);
         f1.Visible = 'off';
         t1 = tiledlayout(f1,3,2);
@@ -69,11 +68,11 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
               'FontWeight','bold', 'Interpreter', 'None')
         
         for i = 1:indigo_summary.K
-            drugs_total = [drugs_total; indigo_summary.testPairs{i}];
-            Ytest_total = [Ytest_total; indigo_summary.testScores{i}];
-            Ypred_total = [Ypred_total; indigo_summary.predictedScores{i}];
-            Ytest = indigo_summary.testScores{i};
-            Ypred = indigo_summary.predictedScores{i};
+            drugs_total = [drugs_total; indigo_summary.test_interactions{i}];
+            Ytest_total = [Ytest_total; indigo_summary.test_scores{i}];
+            Ypred_total = [Ypred_total; indigo_summary.predicted_scores{i}];
+            Ytest = indigo_summary.test_scores{i};
+            Ypred = indigo_summary.predicted_scores{i};
             
             %correlation 
             [R,P] = corr(Ytest, Ypred,'type','Spearman');
@@ -125,16 +124,16 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
         close(f3)
         
     else
-        drugs_total = [indigo_summary.testPairs{1}];
-        Ytest_total = [indigo_summary.testScores{1}];
-        Ypred_total = [indigo_summary.predictedScores{1}];
+        drugs_total = [indigo_summary.test_interactions{1}];
+        Ytest_total = [indigo_summary.test_scores{1}];
+        Ypred_total = [indigo_summary.predicted_scores{1}];
     end
 
     %% OVERALL DATA - ALL RESULTS COMBINED
     
-    overview.drugInteractions = drugs_total;
-    overview.experimentalScores = Ytest_total;
-    overview.predictedScores = Ypred_total;
+    overview.drug_interactions = drugs_total;
+    overview.experimental_scores = Ytest_total;
+    overview.predicted_scores = Ypred_total;
     
     [R,P] = corr(Ytest_total, Ypred_total,'type','Spearman');
 
@@ -182,22 +181,22 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
         results_table.Properties.RowNames = rownames;
 
         fields = fieldnames(stats);
-        tableArray = zeros(length(fields),1);
+        table_array = zeros(length(fields),1);
         for i = 1:length(fields)
             averages.(fields{i}) = mean(stats.(fields{i}));
-            tableArray(i) = mean(stats.(fields{i}));
+            table_array(i) = mean(stats.(fields{i}));
         end
-        averages_table = table(tableArray);
+        averages_table = table(table_array);
         averages_table.Properties.RowNames = varnames; 
         averages_table.Properties.VariableNames = {'Value'};
     end
 
     fields = fieldnames(overview);
-    tableArray = zeros(length(fields)-3,1);  %don't include first 3 fields
+    table_array = zeros(length(fields)-3,1);  %don't include first 3 fields
     for i = 4:length(fields)
-        tableArray(i-3) = overview.(fields{i});
+        table_array(i-3) = overview.(fields{i});
     end
-    overview_table = table(tableArray);
+    overview_table = table(table_array);
     overview_table.Properties.RowNames = varnames;
     overview_table.Properties.VariableNames = {'Value'};
     
@@ -274,7 +273,7 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
     %% ROC CURVES
     function get_roc(Ytest_class,Ypred_class,mode)
         labels = {};  
-        if sum(Ytest_class == -1) > 0
+        if sum(Ytest_class == -1) > 0  && (sum(Ytest_class == 0) > 0 || sum(Ytest_class == 1) > 0)
             %ROC Curve for synergy
             [X_synergy,Y_synergy,T_synergy,AUC_synergy] = perfcurve(Ytest_class,Ypred_class,-1);
             plot(X_synergy,Y_synergy)
@@ -283,7 +282,7 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
             AUC_synergy = nan;
         end
         hold on
-        if sum(Ytest_class == 1) > 0
+        if sum(Ytest_class == 1) > 0 && (sum(Ytest_class == 0) > 0 || sum(Ytest_class == -1) > 0)
             %ROC Curve for antagonism
             [X_antagonism,Y_antagonism,T_antagonism,AUC_antagonism] = perfcurve(Ytest_class,Ypred_class,1);
             plot(X_antagonism,Y_antagonism)
@@ -291,6 +290,8 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
         else
             AUC_antagonism = nan;
         end
+%       plot y = x for reference
+        plot([0,1],[0,1], 'LineStyle', '--')
         hold off
         
         legend(labels,'Location','southeast')
@@ -315,27 +316,24 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
     %% CONFUSION MATRICES
     function get_confusion(Ytest_class,Ypred_class,mode)
         C = confusionmat(Ytest_class,Ypred_class);
-        tempLabels = {};
+        temp_labels = {};
         if sum(Ytest_class == -1) > 0 || sum(Ypred_class == -1) > 0
-            tempLabels{end+1} = 'synergistic';
+            temp_labels{end+1} = 'synergistic';
         end
         if sum(Ytest_class == 0) > 0 || sum(Ypred_class == 0) > 0
-            tempLabels{end+1} = 'neutral';
+            temp_labels{end+1} = 'neutral';
         end
         if sum(Ytest_class == 1) > 0 || sum(Ypred_class == 1) > 0
-            tempLabels{end+1}  = 'antagonistic';
+            temp_labels{end+1}  = 'antagonistic';
         end
-        cats = categorical(tempLabels);
-        confusionLabels = reordercats(cats,tempLabels);
-        cm = confusionchart(C,confusionLabels);
-        cm.RowSummary = 'total-normalized';
-        cm.ColumnSummary = 'total-normalized';
+        cats = categorical(temp_labels);
+        confusion_labels = reordercats(cats,temp_labels);
+        cm = confusionchart(C,confusion_labels);
         if mode == 1
             cm.Title = sprintf('Subset %d',i);   %specific to subset
         else
             cm.Title = 'Overall Confusion Matrix';
         end   
-        
     end
 
     %% SCATTER PLOTS

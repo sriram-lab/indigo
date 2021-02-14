@@ -85,7 +85,6 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
     end
 
     indigo_summary.scoring = scoring;
-
     indigo_summary.test_data = test_data;
     indigo_summary.training_data = training_data;
     indigo_summary.data_lookup = data_lookup;
@@ -218,7 +217,7 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
 
         % Build the model
         tic
-        indigo_model = fitrensemble(single(train_sigma_delta_scores_all'), ...
+        indigo_model = fitrensemble(single(train_sigma_delta_scores'), ...
                        single(Ytrain),'Method','Bag');
         toc
 
@@ -370,9 +369,9 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
         end
 
         indigo_summary.model{i} = indigo_model;
-        indigo_summary.train_pairs{i} = Xtrain;
+        indigo_summary.train_interactions{i} = Xtrain;
         indigo_summary.train_scores{i} = Ytrain;
-        indigo_summary.test_pairs{i} = Xtest;
+        indigo_summary.test_interactions{i} = Xtest;
         indigo_summary.test_scores{i} = Ytest;
         indigo_summary.predicted_scores{i} = predicted_scores;
         fprintf(sprintf('INDIGO predictions subset %d complete!\n',i))
