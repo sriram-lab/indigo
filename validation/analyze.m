@@ -83,7 +83,7 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
             get_stats(Ytest_class, Ypred_class, 1)
             
             nexttile
-            get_roc(Ytest_class, Ypred_class, 1)
+            get_roc(Ytest_class, Ypred, 1)
         end
         
         fig_file = strcat(results_file,'_roc');
@@ -147,7 +147,7 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
     title(t4,sprintf('Overall INDIGO Results for %s\n',dataname), ...
         'FontWeight','bold','Interpreter','none')
     nexttile
-    get_roc(Ytest_class_total, Ypred_class_total, 2)    
+    get_roc(Ytest_class_total, Ypred_total, 2)    
     nexttile
     get_confusion(Ytest_class_total, Ypred_class_total, 2)
     nexttile
@@ -271,11 +271,11 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
     end
     
     %% ROC CURVES
-    function get_roc(Ytest_class,Ypred_class,mode)
+    function get_roc(Ytest_class,Ypred,mode)
         labels = {};  
         if sum(Ytest_class == -1) > 0  && (sum(Ytest_class == 0) > 0 || sum(Ytest_class == 1) > 0)
             %ROC Curve for synergy
-            [X_synergy,Y_synergy,T_synergy,AUC_synergy] = perfcurve(Ytest_class,Ypred_class,-1);
+            [X_synergy,Y_synergy,T_synergy,AUC_synergy] = perfcurve(Ytest_class,-Ypred,-1);
             plot(X_synergy,Y_synergy)
             labels{end+1} = 'synergy';
         else
@@ -284,7 +284,7 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
         hold on
         if sum(Ytest_class == 1) > 0 && (sum(Ytest_class == 0) > 0 || sum(Ytest_class == -1) > 0)
             %ROC Curve for antagonism
-            [X_antagonism,Y_antagonism,T_antagonism,AUC_antagonism] = perfcurve(Ytest_class,Ypred_class,1);
+            [X_antagonism,Y_antagonism,T_antagonism,AUC_antagonism] = perfcurve(Ytest_class,Ypred,1);
             plot(X_antagonism,Y_antagonism)
             labels{end+1} = 'antagonism';
         else
