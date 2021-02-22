@@ -69,12 +69,10 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
     indigo_summary.model_type = model_type;
     if strcmp(model_type, 'original_model') || strcmp(model_type, 'ecoli_model')
         %E. coli chemogenomics data
-        annotation_file = 'identifiers_match.xlsx';
         chemogenomics_file = 'ecoli_phenotype_data_cell.xlsx';
 
     elseif strcmp(model_type, 'mtb_model')
-        % M. tb chemogenomics data, scripts have _tb at end
-        annotation_file = 'identifiers_match_tb.xlsx';
+        % M. tb chemogenomics data
         chemogenomics_file = [];
         file = 'averaged_data_new.mat';
         S = load(file);
@@ -123,10 +121,12 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
             if i == 1
                 %Train first
                 if strcmp(model_type, 'original_model') || strcmp(model_type, 'ecoli_model')
+                    annotation_file = strcat(erase(training_data{i},'.xlsx'),'_ecoli_match.xlsx');
                     [train_interactions, train_scores, labels, indigo_model,...
                      train_sigma_delta_scores, ~] = indigo_train(training_data{i},standardize, ...
-                     annotation_file,chemogenomics_file);
+                        annotation_file, chemogenomics_file);
                 elseif strcmp(model_type, 'mtb_model')
+                    annotation_file = strcat(erase(training_data{i},'.xlsx'),'_mtb_match.xlsx');
                     [train_interactions, train_scores, labels, indigo_model,...
                      train_sigma_delta_scores, ~] = indigo_train_tb(training_data{i},standardize, ...
                      annotation_file,chemogenomics_file,1,phenotype_data,phenotype_labels,col);
@@ -149,9 +149,11 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
                 end
 
                 if strcmp(model_type, 'original_model') || strcmp(model_type, 'ecoli_model')
+                     annotation_file = strcat(erase(training_data{i},'.xlsx'),'_ecoli_match.xlsx');
                     [~,~,~,train_sigma_delta_scores] = indigo_predict(indigo_model,train_interactions, ...
                       input_type,annotation_file,chemogenomics_file);
                 elseif strcmp(model_type,'mtb_model')
+                    annotation_file = strcat(erase(training_data{i},'.xlsx'),'_mtb_match.xlsx');
                     [~,~,~,train_sigma_delta_scores] = indigo_predict_tb(indigo_model,train_interactions, ...
                      input_type,annotation_file,chemogenomics_file, 1, phenotype_data, phenotype_labels, col);
                 end
@@ -185,7 +187,7 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
 
     %% BUILD MODEL AND MAKE PREDICTIONS WITH VALIDATION METHOD OF YOUR CHOOSING
     indigo_summary.valmethod = valmethod;
-
+    indigo_summary.K = K;
     if strcmp(valmethod,'holdout_onself')
         i = 1;
         % K = 0.2 is usually default --> 20% of data is in test set
@@ -199,10 +201,12 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
         writecell([Xtrain,num2cell(Ytrain)],'train.xlsx')
 
         if strcmp(model_type, 'original_model') || strcmp(model_type, 'ecoli_model')
+            annotation_file = strcat(erase(test_data,'.xlsx'),'_ecoli_match.xlsx');
             [~, ~, labels, indigo_model,...
              train_sigma_delta_scores, ~] = indigo_train('train.xlsx', standardize, ...
              annotation_file,chemogenomics_file);
         elseif strcmp(model_type, 'mtb_model')
+            annotation_file = strcat(erase(test_data,'.xlsx'),'_mtb_match.xlsx');
             [~, ~, labels, indigo_model,...
              train_sigma_delta_scores, ~] = indigo_train_tb('train.xlsx',standardize, ...
              annotation_file,chemogenomics_file,1,phenotype_data,phenotype_labels,col);
@@ -235,9 +239,11 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
         Ytest = test_scores(test);
 
         if strcmp(model_type, 'original_model') || strcmp(model_type, 'ecoli_model')
+            annotation_file = strcat(erase(test_data,'.xlsx'),'_ecoli_match.xlsx');
             [~,~,~,train_sigma_delta_scores] = indigo_predict(indigo_model,Xtrain, ...
              input_type,annotation_file,chemogenomics_file);
         elseif strcmp(model_type, 'mtb_model')
+            annotation_file = strcat(erase(test_data,'.xlsx'),'_mtb_match.xlsx');
             [~,~,~,train_sigma_delta_scores] = indigo_predict_tb(indigo_model,Xtrain, ...
              input_type,annotation_file,chemogenomics_file, 1, phenotype_data, phenotype_labels, col);
         end
@@ -279,7 +285,6 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
         predictStep();
 
     elseif strcmp(valmethod,'Kfold_onself')
-        indigo_summary.K = K;
         for i = 1:K
             fprintf('Run %d\n',i)
             idx = crossvalind('Kfold',length(test_scores),K);
@@ -292,10 +297,12 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
             writecell([Xtrain,num2cell(Ytrain)],'train.xlsx')
 
             if strcmp(model_type, 'original_model') || strcmp(model_type, 'ecoli_model')
+                annotation_file = strcat(erase(test_data,'.xlsx'),'_ecoli_match.xlsx');
                 [~, ~, labels, indigo_model,...
                  train_sigma_delta_scores, ~] = indigo_train('train.xlsx',standardize, ...
                  annotation_file,chemogenomics_file);
             elseif strcmp(model_type, 'mtb_model')
+                annotation_file = strcat(erase(test_data,'.xlsx'),'_mtb_match.xlsx');
                 [~, ~, labels, indigo_model,...
                  train_sigma_delta_scores, ~] = indigo_train_tb('train.xlsx',standardize, ...
                  annotation_file,chemogenomics_file,1,phenotype_data,phenotype_labels,col);
@@ -326,9 +333,11 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
             Xtest = test_interactions(test,:);
             Ytest = test_scores(test);
             if strcmp(model_type, 'original_model') || strcmp(model_type, 'ecoli_model')
+                annotation_file = strcat(erase(test_data,'.xlsx'),'_ecoli_match.xlsx');
                 [~,~,~,train_sigma_delta_scores] = indigo_predict(indigo_model,Xtrain, ...
                  input_type,annotation_file,chemogenomics_file);
             elseif strcmp(model_type, 'mtb_model')
+                annotation_file = strcat(erase(test_data,'.xlsx'),'_mtb_match.xlsx');
                 [~,~,~,train_sigma_delta_scores] = indigo_predict_tb(indigo_model,Xtrain, ...
                  input_type,annotation_file,chemogenomics_file, 1, phenotype_data, phenotype_labels, col);
             end
@@ -352,28 +361,36 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
 
     % nested function for predicting scores and storing results
     function predictStep()
-
-        if strcmp(model_type, 'original_model') || strcmp(model_type, 'ecoli_model')
-             [~,predicted_scores,~,test_sigma_delta_scores] = indigo_predict(indigo_model, ...
-              Xtest,input_type,'identifiers_match.xlsx','ecoli_phenotype_data_cell.xlsx');
-        elseif strcmp(model_type, 'mtb_model')
-             [~,predicted_scores,~,test_sigma_delta_scores] = indigo_predict_tb(indigo_model,Xtest, ...
-              input_type,annotation_file,chemogenomics_file, 1, phenotype_data, phenotype_labels, col);
-        end
-
-        if ~isempty(test_orthologs)
-            deviations = indigo_orthology(labels, test_orthologs, ... 
-                         test_sigma_delta_scores, indigo_model); 
-
-            predicted_scores = predicted_scores - deviations;
-        end
-
+        
         indigo_summary.model{i} = indigo_model;
         indigo_summary.train_interactions{i} = Xtrain;
         indigo_summary.train_scores{i} = Ytrain;
         indigo_summary.test_interactions{i} = Xtest;
         indigo_summary.test_scores{i} = Ytest;
-        indigo_summary.predicted_scores{i} = predicted_scores;
+
+        if strcmp(model_type, 'original_model') || strcmp(model_type, 'ecoli_model')
+            annotation_file = strcat(erase(test_data,'.xlsx'),'_ecoli_match.xlsx');
+        [~,predicted_scores,~,test_sigma_delta_scores] = indigo_predict(indigo_model, ...
+            Xtest,input_type,annotation_file,chemogenomics_file);
+        elseif strcmp(model_type, 'mtb_model')
+            annotation_file = strcat(erase(test_data,'.xlsx'),'_mtb_match.xlsx');
+            [~,predicted_scores,~,test_sigma_delta_scores] = indigo_predict_tb(indigo_model,Xtest, ...
+                input_type,annotation_file,chemogenomics_file, 1, phenotype_data, phenotype_labels, col);
+        end
+
+        if ~isempty(test_orthologs)
+            deviations = indigo_orthology(labels, test_orthologs, ... 
+                         test_sigma_delta_scores, indigo_model); 
+            
+            % first column is for first deviations, second column is second
+            predicted_scores_1 = predicted_scores - deviations(:,1);
+            predicted_scores_2 = predicted_scores - deviations(:,2);
+            indigo_summary.predicted_scores_1{i} = predicted_scores_1;
+            indigo_summary.predicted_scores_2{i} = predicted_scores_2;
+        else
+            indigo_summary.predicted_scores{i} = predicted_scores;
+        end
+        
         fprintf(sprintf('INDIGO predictions subset %d complete!\n',i))
     end
 

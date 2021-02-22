@@ -72,7 +72,7 @@ function [phenotype_data, phenotype_labels, conditions] = process_chemgen(fname,
     sensitive_labels = plist_bnums(~idx);
     % Resistant strains
     resistant_phenotype_num = phenotype_num > z; 
-    idx = sum(resistant_phenotype_num, 2) == 0;  % all sensitive rows
+    idx = sum(resistant_phenotype_num, 2) == 0; 
     resistant_data = resistant_phenotype_num(~idx,:);
     resistant_labels = plist_bnums(~idx);
 

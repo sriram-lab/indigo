@@ -43,7 +43,7 @@ function [testinteractions_scores, indigo_model, sigma_delta_scores] = ...
     %}
 
     %% INPUT PROCESSING BASED ON MODE (TRAINING OR TESTING)
-    
+   
     % Determine sigma and delta scores for interaction combinations 
     if (indigo_mode == 1) || (indigo_mode == 0)     % training mode
         chemgen = trainchemgen;             % chemogenomic data
@@ -55,10 +55,9 @@ function [testinteractions_scores, indigo_model, sigma_delta_scores] = ...
                 ix1 = repelem(ix1, size(interactions, 2)); 
             end
             t1 = chemgen(:,ix1);
-            t2 = sum(t1,2) * 2/length(ix1); % sigma scores
-            traindiffdat1xxz2(:,i) = [t2; [(sum(logical(t1')) ==1)]'];
-        end
-
+            t2 = sum(t1,2) * 2/length(ix1); % sigma scores, 0, 1, 2s
+            traindiffdat1xxz2(:,i) = [t2; [(sum(logical(t1')) ==1)]']; %second half is delta scores: subtraction --> 0, 1s
+        end 
     elseif (indigo_mode == 2) || (indigo_mode == 0) % testing mode
         chemgen = testchemgen;              % chemogenomic data
         alldrugs = testdrugs;               % drug list
@@ -73,7 +72,7 @@ function [testinteractions_scores, indigo_model, sigma_delta_scores] = ...
             testdiffdat1xxz2(:,i) = [t2;[(sum(logical(t1')) ==1)]'];
         end
     end
-
+    
     %% RUN RF ALGORITHM
     if indigo_mode == 1
         indigo_model = fitrensemble(traindiffdat1xxz2',trainxnscores,'Method','Bag');

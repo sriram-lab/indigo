@@ -1,4 +1,4 @@
-function [stats,averages,overview] = analyze(indigo_summary,result_index, data_files)
+function [stats,averages,overview] = analyze(indigo_summary, result_index, indigo_data, data_files, prediction_idx)
 
     %{
     DESCRIPTION
@@ -29,27 +29,48 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
                             from all subsets.
     %}
 
+ 
+    if prediction_idx == 1
+        if isfield(indigo_summary,'predicted_scores_1')
+            predicted_scores = indigo_summary.predicted_scores_1;
+        else
+            predicted_scores = indigo_summary.predicted_scores;
+        end
+        directory = 'v3_1';
+    elseif prediction_idx == 2
+        if isfield(indigo_summary,'predicted_scores_2')
+            predicted_scores = indigo_summary.predicted_scores_2;
+        else
+            predicted_scores = indigo_summary.predicted_scores;
+        end
+        directory = 'v3_2';
+    end
+
+
     %% Structure naming for output files and figures
     dataname = erase(indigo_summary.test_data,'.xlsx');
     
     filename = strcat(erase(indigo_summary.test_data,'.xlsx'),'_',indigo_summary.valmethod);
     sheetname = indigo_summary.valmethod;
+
     if strcmp(indigo_summary.standardize,'z_score')
         filename = sprintf('%s_z', filename);
         sheetname = strcat(indigo_summary.valmethod,' (z)');
     end
-
     if strcmp(indigo_summary.scoring,'bliss') || strcmp(indigo_summary.scoring,'loewe')
-        overview_file = strcat('results/v2/', indigo_summary.model_type, '/', ...
-            indigo_summary.scoring, '/','overview_results.xlsx');
-        results_file = strcat('results/v2/', indigo_summary.model_type, '/', ...
-            indigo_summary.scoring, '/', indigo_summary.valmethod, '/', filename);
+        overview_file = sprintf(strcat('results/%s/', indigo_summary.model_type, '/', ...
+            indigo_summary.scoring, '/','overview_results.xlsx'), directory);
+        results_file = sprintf(strcat('results/%s/', indigo_summary.model_type, '/', ...
+            indigo_summary.scoring, '/', indigo_summary.valmethod, '/', filename), directory);
     else
-        overview_file = strcat('results/v2/',indigo_summary.model_type, '/', ...
-            'overview_results.xlsx');
-        results_file = strcat('results/v2/',indigo_summary.model_type, '/', ...
-            indigo_summary.valmethod, '/', filename);
+        overview_file = sprintf(strcat('results/%s/',indigo_summary.model_type, '/', ...
+            'overview_results.xlsx'), directory);
+        results_file = sprintf(strcat('results/%s/',indigo_summary.model_type, '/', ...
+            indigo_summary.valmethod, '/', filename), directory);
     end
+    
+
+    %% Select predicted scores - point to a whole new folder of results? or
     
     %% Process results
     fprintf(sprintf('Results for %s',dataname))
@@ -70,9 +91,9 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
         for i = 1:indigo_summary.K
             drugs_total = [drugs_total; indigo_summary.test_interactions{i}];
             Ytest_total = [Ytest_total; indigo_summary.test_scores{i}];
-            Ypred_total = [Ypred_total; indigo_summary.predicted_scores{i}];
+            Ypred_total = [Ypred_total; predicted_scores{i}];
             Ytest = indigo_summary.test_scores{i};
-            Ypred = indigo_summary.predicted_scores{i};
+            Ypred = predicted_scores{i};
             
             %correlation 
             [R,P] = corr(Ytest, Ypred,'type','Spearman');
@@ -80,7 +101,7 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
             [Ytest_class, Ypred_class] = classify_scores(Ytest,Ypred);   
             
             % 1 means analysis per subset
-            get_stats(Ytest_class, Ypred_class, 1)
+            get_stats(Ytest_class, Ypred_class, Ytest, Ypred, 1)
             
             nexttile
             get_roc(Ytest_class, Ypred, 1)
@@ -126,7 +147,7 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
     else
         drugs_total = [indigo_summary.test_interactions{1}];
         Ytest_total = [indigo_summary.test_scores{1}];
-        Ypred_total = [indigo_summary.predicted_scores{1}];
+        Ypred_total = [predicted_scores{1}];
     end
 
     %% OVERALL DATA - ALL RESULTS COMBINED
@@ -140,7 +161,7 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
     [Ytest_class_total, Ypred_class_total] = classify_scores(Ytest_total, Ypred_total);   
 
     % 2 means analysis for all results combined
-    get_stats(Ytest_class_total, Ypred_class_total, 2)
+    get_stats(Ytest_class_total, Ypred_class_total, Ytest_total, Ypred_total, 2)
     f4 = figure(4);
     f4.Visible = 'off';
     t4 = tiledlayout(f4,3,1);
@@ -222,7 +243,23 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
     writecell([{'Datasets'}, varnames], overview_file, 'Sheet', sheetname, 'Range', 'A1:L1')
     writetable(overview_table, overview_file, 'Sheet', sheetname, 'Range', ...
         sprintf('B%d:L%d',result_index+1,result_index+1), 'WriteVariableNames',false)
-
+    
+    %% write data to one giant master file
+    all_overview_results_file = sprintf('results/%s/all_overview_results.xlsx', directory);
+    % R
+    [row_loc, column_loc] = print_results(indigo_summary, indigo_data, 'R');
+    writematrix(getfield(overview,fields{5}),all_overview_results_file,'Sheet','R','Range', ...
+         sprintf('%s%d', column_loc, row_loc))
+    [row_loc, column_loc] = print_results(indigo_summary, indigo_data, 'P');
+    writematrix(getfield(overview,fields{6}),all_overview_results_file,'Sheet','R','Range', ...
+         sprintf('%s%d', column_loc, row_loc))
+    % for loop for rest of fields
+    for i = 7:length(fields)
+        [row_loc, column_loc] = print_results(indigo_summary, indigo_data, '');
+        writematrix(getfield(overview,fields{i}),all_overview_results_file,'Sheet',i-5,'Range', ...
+           sprintf('%s%d', column_loc, row_loc))
+    end
+    
     %% CLASSIFY SCORES
     function [Ytest_class, Ypred_class] = classify_scores(Ytest, Ypred)
         [synergy_cutoff, antagonism_cutoff] = cutoffs(indigo_summary.test_data, indigo_summary.data_lookup);
@@ -237,11 +274,11 @@ function [stats,averages,overview] = analyze(indigo_summary,result_index, data_f
     end
 
     %% GET STATISTICS
-    function get_stats(Ytest_class, Ypred_class, mode)
+    function get_stats(Ytest_class, Ypred_class, Ytest, Ypred, mode)
         interaction_count = length(Ytest_class);
         %Get accuracy, precision and recall
         accuracy = sum(Ypred_class == Ytest_class)/length(Ypred_class);
-        abs_error = mean(abs(Ypred_class - Ytest_class));
+        abs_error = mean(abs(Ypred - Ytest));
         precision_synergy = sum(Ypred_class == -1 & Ytest_class == -1)/sum(Ypred_class == -1);
         recall_synergy = sum(Ypred_class == -1 & Ytest_class == -1)/sum(Ytest_class == -1);
         precision_antagonism = sum(Ypred_class == 1 & Ytest_class == 1)/sum(Ypred_class == 1);
