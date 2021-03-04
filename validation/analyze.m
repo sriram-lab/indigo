@@ -109,7 +109,7 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
         
         fig_file = strcat(results_file,'_roc');
         saveas(f1,fig_file,'fig') 
-        saveas(f1,fig_file,'png')
+%         saveas(f1,fig_file,'png')
         close(f1)
         
         f2 = figure(2);
@@ -125,7 +125,7 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
         
         fig_file = strcat(results_file,'_cm');
         saveas(f2,fig_file,'fig')
-        saveas(f2,fig_file,'png')
+%         saveas(f2,fig_file,'png')
         close(f2)
         
         f3 = figure(3);
@@ -141,7 +141,7 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
         
         fig_file = strcat(results_file,'_sc');
         saveas(f3,fig_file,'fig')
-        saveas(f3,fig_file,'png')
+%         saveas(f3,fig_file,'png')
         close(f3)
         
     else
@@ -175,7 +175,7 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
     get_scatter(Ytest_total, Ypred_total, 2)  
     fig_file = strcat(results_file,'_overall');
     saveas(f4,fig_file,'fig')
-    saveas(f4,fig_file,'png')
+%     saveas(f4,fig_file,'png')
     close(f4)
 
     %% FORMAT TABLES
