@@ -184,7 +184,8 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
             train_interactions_all = [train_interactions_all; train_interactions];
         end
     end
-
+    
+    predictor_names = [phenotype_labels; phenotype_labels];
     %% BUILD MODEL AND MAKE PREDICTIONS WITH VALIDATION METHOD OF YOUR CHOOSING
     indigo_summary.valmethod = valmethod;
     indigo_summary.K = K;
@@ -222,7 +223,7 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
         % Build the model
         tic
         indigo_model = fitrensemble(single(train_sigma_delta_scores'), ...
-                       single(Ytrain),'Method','Bag');
+                       single(Ytrain),'Method','Bag','PredictorNames',predictor_names);
         toc
 
 
@@ -259,7 +260,8 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
 
         tic
         indigo_model = fitrensemble(single(train_sigma_delta_scores_all'), ...
-                                    single(train_scores_all), 'Method','Bag');
+                                    single(train_scores_all), 'Method','Bag', ...
+                                    'PredictorNames',predictor_names);
         toc
 
         predictStep();
@@ -273,7 +275,8 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
         if length(training_data) > 1 || ~isempty(train_orthologs)
             tic
             indigo_model = fitrensemble(single(train_sigma_delta_scores_all'), ...
-                                        single(train_scores_all),'Method','Bag');
+                                        single(train_scores_all),'Method','Bag', ...
+                                        'PredictorNames',predictor_names);
             toc
         end
 
@@ -315,7 +318,8 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
 
             tic
             indigo_model = fitrensemble(single(train_sigma_delta_scores_all'), ...
-                                        single(Ytrain),'Method','Bag');
+                                        single(Ytrain),'Method','Bag', ...
+                                        'PredictorNames',predictor_names);
             toc
 
             predictStep();   
@@ -352,7 +356,8 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
 
             tic
             indigo_model = fitrensemble(single(train_sigma_delta_scores_all'), ...
-                                        single(train_scores_all),'Method','Bag');
+                                        single(train_scores_all),'Method','Bag', ...
+                                        'PredictorNames',predictor_names);
             toc
 
             predictStep();
