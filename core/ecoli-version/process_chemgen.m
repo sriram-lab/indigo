@@ -1,4 +1,4 @@
-function [phenotype_data, phenotype_labels, conditions] = process_chemgen(fname,z)
+function [phenotype_data, phenotype_labels, predictor_names, conditions] = process_chemgen(fname,z)
 
     % DESCRIPTION 
     % This function processes chemogenomic data to form a binary matrix
@@ -70,6 +70,7 @@ function [phenotype_data, phenotype_labels, conditions] = process_chemgen(fname,
     idx = sum(sensitive_phenotype_num, 2) == 0;
     sensitive_data = sensitive_phenotype_num(~idx,:);
     sensitive_labels = plist_bnums(~idx);
+    
     % Resistant strains
     resistant_phenotype_num = phenotype_num > z; 
     idx = sum(resistant_phenotype_num, 2) == 0; 
@@ -81,4 +82,9 @@ function [phenotype_data, phenotype_labels, conditions] = process_chemgen(fname,
     phenotype_data = [sensitive_data; resistant_data];
     phenotype_labels = [sensitive_labels; resistant_labels];
     
+    predictor_names_se = strcat(sensitive_labels, repmat({'_se'},length(sensitive_labels),1));
+    predictor_names_r = strcat(resistant_labels, repmat({'_r'},length(resistant_labels),1));
+    predictor_names = [predictor_names_se; predictor_names_r];
+    predictor_names = [strcat(predictor_names, repmat({'_si'},length(predictor_names),1)); ...
+        strcat(predictor_names, repmat({'_d'},length(predictor_names),1))];
 end

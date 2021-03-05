@@ -79,7 +79,7 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
         [normData,col,row] = tb_preprocessing(S.averagedtbdata, ...
                              S.mtb_expression_database_col_ids, ...
                              S.mtb_expression_database_row_ids);
-        [phenotype_data, phenotype_labels] = process_transcriptome_tb(normData,row,col);
+        [phenotype_data, phenotype_labels, predictor_names] = process_transcriptome_tb(normData,row,col);
     end
 
     indigo_summary.scoring = scoring;
@@ -122,7 +122,7 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
                 %Train first
                 if strcmp(model_type, 'original_model') || strcmp(model_type, 'ecoli_model')
                     annotation_file = strcat(erase(training_data{i},'.xlsx'),'_ecoli_match.xlsx');
-                    [train_interactions, train_scores, phenotype_labels, indigo_model,...
+                    [train_interactions, train_scores, phenotype_labels, predictor_names, indigo_model,...
                      train_sigma_delta_scores, ~] = indigo_train(training_data{i},standardize, ...
                         annotation_file, chemogenomics_file);
                 elseif strcmp(model_type, 'mtb_model')
@@ -185,14 +185,13 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
         end
     end
     
-    predictor_names = [phenotype_labels; phenotype_labels];
     %% BUILD MODEL AND MAKE PREDICTIONS WITH VALIDATION METHOD OF YOUR CHOOSING
     indigo_summary.valmethod = valmethod;
     indigo_summary.K = K;
     if strcmp(valmethod,'holdout_onself')
         i = 1;
         % K = 0.2 is usually default --> 20% of data is in test set
-        [train,test] = crossvalind('HoldOut',length(test_interactions), K); 
+        [train,test] = crossvalind('HoldOut',length(test_interactions), 0.2); 
         Xtrain = test_interactions(train,:);
         Ytrain = test_scores(train);
         Xtest = test_interactions(test,:);
@@ -203,7 +202,7 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
 
         if strcmp(model_type, 'original_model') || strcmp(model_type, 'ecoli_model')
             annotation_file = strcat(erase(test_data,'.xlsx'),'_ecoli_match.xlsx');
-            [~, ~, phenotype_labels, indigo_model,...
+            [~, ~, phenotype_labels, predictor_names, indigo_model,...
              train_sigma_delta_scores, ~] = indigo_train('train.xlsx', standardize, ...
              annotation_file,chemogenomics_file);
         elseif strcmp(model_type, 'mtb_model')
@@ -288,9 +287,9 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
         predictStep();
 
     elseif strcmp(valmethod,'Kfold_onself')
+        idx = crossvalind('Kfold',length(test_scores),K);
         for i = 1:K
             fprintf('Run %d\n',i)
-            idx = crossvalind('Kfold',length(test_scores),K);
             test = (idx == i);
             train = ~test;
             Xtrain = test_interactions(train,:);
@@ -301,7 +300,7 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
 
             if strcmp(model_type, 'original_model') || strcmp(model_type, 'ecoli_model')
                 annotation_file = strcat(erase(test_data,'.xlsx'),'_ecoli_match.xlsx');
-                [~, ~, phenotype_labels, indigo_model,...
+                [~, ~, phenotype_labels, predictor_names, indigo_model,...
                  train_sigma_delta_scores, ~] = indigo_train('train.xlsx',standardize, ...
                  annotation_file,chemogenomics_file);
             elseif strcmp(model_type, 'mtb_model')
@@ -327,9 +326,9 @@ function indigo_summary = indigo_run(test_data, training_data, data_lookup, ...
 
     elseif strcmp(valmethod,'Kfold')
         indigo_summary.K = K;
+        idx = crossvalind('Kfold', length(test_scores), K);
         for i = 1:K
             fprintf('Run %d\n',i)
-            idx = crossvalind('Kfold',length(test_scores),K);
             test = (idx == i);
             train = ~test;
             Xtrain = test_interactions(train,:);

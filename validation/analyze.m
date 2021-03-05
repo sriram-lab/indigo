@@ -48,8 +48,8 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
 
 
     %% Structure naming for output files and figures
-    dataname = erase(indigo_summary.test_data,'.xlsx');
-    
+    dataname = indigo_data.Data_Label_Full(strcmp(indigo_data.Filename,indigo_summary.test_data));
+    dataname = dataname{1};
     filename = strcat(erase(indigo_summary.test_data,'.xlsx'),'_',indigo_summary.valmethod);
     sheetname = indigo_summary.valmethod;
 
@@ -58,14 +58,14 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
         sheetname = strcat(indigo_summary.valmethod,' (z)');
     end
     if strcmp(indigo_summary.scoring,'bliss') || strcmp(indigo_summary.scoring,'loewe')
-        overview_file = sprintf(strcat('results/%s/', indigo_summary.model_type, '/', ...
+        overview_file = sprintf(strcat('results2/%s/', indigo_summary.model_type, '/', ...
             indigo_summary.scoring, '/','overview_results.xlsx'), directory);
-        results_file = sprintf(strcat('results/%s/', indigo_summary.model_type, '/', ...
+        results_file = sprintf(strcat('results2/%s/', indigo_summary.model_type, '/', ...
             indigo_summary.scoring, '/', indigo_summary.valmethod, '/', filename), directory);
     else
-        overview_file = sprintf(strcat('results/%s/',indigo_summary.model_type, '/', ...
+        overview_file = sprintf(strcat('results2/%s/',indigo_summary.model_type, '/', ...
             'overview_results.xlsx'), directory);
-        results_file = sprintf(strcat('results/%s/',indigo_summary.model_type, '/', ...
+        results_file = sprintf(strcat('results2/%s/',indigo_summary.model_type, '/', ...
             indigo_summary.valmethod, '/', filename), directory);
     end
     
@@ -73,7 +73,7 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
     %% Select predicted scores - point to a whole new folder of results? or
     
     %% Process results
-    fprintf(sprintf('Results for %s',dataname))
+    fprintf(sprintf('Results for %s\n',dataname))
     stats = struct;
     averages = struct;
     
@@ -88,6 +88,18 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
         title(t1,sprintf('ROC Curves for %s\n', dataname), ...
               'FontWeight','bold', 'Interpreter', 'None')
         
+        f2 = figure(2);
+        f2.Visible = 'off';
+        t2 = tiledlayout(f2,3,2);
+        title(t2, sprintf('Confusion Matrices for %s\n', dataname), ...
+              'FontWeight','bold','Interpreter','None')
+       
+        f3 = figure(3);
+        f3.Visible = 'off';
+        t3 = tiledlayout(f3,3,2);
+        title(t3, sprintf('Scatter Plots (Ranked Sorted) for %s\n', dataname), ...
+              'FontWeight','bold','Interpreter','None')
+       
         for i = 1:indigo_summary.K
             drugs_total = [drugs_total; indigo_summary.test_interactions{i}];
             Ytest_total = [Ytest_total; indigo_summary.test_scores{i}];
@@ -103,45 +115,29 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
             % 1 means analysis per subset
             get_stats(Ytest_class, Ypred_class, Ytest, Ypred, 1)
             
-            nexttile
+            % ROC curves
+            nexttile(t1)
             get_roc(Ytest_class, Ypred, 1)
+            
+            % Confusion matrices
+            nexttile(t2)
+            get_confusion(Ytest_class, Ypred_class, 1)
+            
+            % Scatter plots
+            nexttile(t3)
+            get_scatter(Ytest, Ypred, R, 1)  
         end
         
         fig_file = strcat(results_file,'_roc');
         saveas(f1,fig_file,'fig') 
-%         saveas(f1,fig_file,'png')
         close(f1)
-        
-        f2 = figure(2);
-        f2.Visible = 'off';
-        t2 = tiledlayout(f2,3,2);
-        title(t2, sprintf('Confusion Matrices for %s\n', dataname), ...
-              'FontWeight','bold','Interpreter','None')
-        
-        for i = 1:indigo_summary.K
-            nexttile
-            get_confusion(Ytest_class, Ypred_class, 1)
-        end
-        
+
         fig_file = strcat(results_file,'_cm');
         saveas(f2,fig_file,'fig')
-%         saveas(f2,fig_file,'png')
         close(f2)
-        
-        f3 = figure(3);
-        f3.Visible = 'off';
-        t3 = tiledlayout(f3,3,2);
-        title(t3, sprintf('Scatter Plots (Ranked Sorted) for %s\n', dataname), ...
-              'FontWeight','bold','Interpreter','None')
-        
-        for i = 1:indigo_summary.K     
-            nexttile
-            get_scatter(Ytest, Ypred, 1)  
-        end
-        
+   
         fig_file = strcat(results_file,'_sc');
         saveas(f3,fig_file,'fig')
-%         saveas(f3,fig_file,'png')
         close(f3)
         
     else
@@ -172,10 +168,9 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
     nexttile
     get_confusion(Ytest_class_total, Ypred_class_total, 2)
     nexttile
-    get_scatter(Ytest_total, Ypred_total, 2)  
+    get_scatter(Ytest_total, Ypred_total, R, 2)  
     fig_file = strcat(results_file,'_overall');
     saveas(f4,fig_file,'fig')
-%     saveas(f4,fig_file,'png')
     close(f4)
 
     %% FORMAT TABLES
@@ -313,7 +308,7 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
         if sum(Ytest_class == -1) > 0  && (sum(Ytest_class == 0) > 0 || sum(Ytest_class == 1) > 0)
             %ROC Curve for synergy
             [X_synergy,Y_synergy,T_synergy,AUC_synergy] = perfcurve(Ytest_class,-Ypred,-1);
-            plot(X_synergy,Y_synergy)
+            plot(X_synergy,Y_synergy,'linewidth',3)
             labels{end+1} = 'synergy';
         else
             AUC_synergy = nan;
@@ -322,18 +317,22 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
         if sum(Ytest_class == 1) > 0 && (sum(Ytest_class == 0) > 0 || sum(Ytest_class == -1) > 0)
             %ROC Curve for antagonism
             [X_antagonism,Y_antagonism,T_antagonism,AUC_antagonism] = perfcurve(Ytest_class,Ypred,1);
-            plot(X_antagonism,Y_antagonism)
+            plot(X_antagonism,Y_antagonism, 'linewidth',3)
             labels{end+1} = 'antagonism';
         else
             AUC_antagonism = nan;
         end
 %       plot y = x for reference
-        plot([0,1],[0,1], 'LineStyle', '--')
+        plot([0,1],[0,1], 'LineStyle', '--', 'linewidth', 3)
         hold off
         
         legend(labels,'Location','southeast')
-        xlabel('False positive rate') 
-        ylabel('True positive rate')
+        xlabel('False positive rate','FontWeight','bold','FontSize',16) 
+        ylabel('True positive rate','FontWeight','bold','FontSize',16)
+        ax = gca;
+        ax.FontSize = 12;
+        ax.FontWeight = 'bold';
+        ax.TitleFontSizeMultiplier = 1.5;
        
         if mode == 1
             title(sprintf('Subset %d',i))
@@ -374,7 +373,7 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
     end
 
     %% SCATTER PLOTS
-    function get_scatter(Ytest,Ypred,mode)
+    function get_scatter(Ytest, Ypred, rank_corr, mode)
         % Scatter plot with line of best fit
         % Rank sorted - larger rank means bigger value
         [~,I_test] = sort(Ytest);
@@ -384,16 +383,20 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
         Ypred_rank = zeros(1,length(Ytest));
         Ypred_rank(I_pred) = 1:length(Ypred);
         
-        scatter(Ytest_rank,Ypred_rank,24,'filled')
-        h = lsline; h.Color = 'red'; 
-        h.DisplayName = sprintf('R = %.2f', R);
+        scatter(Ytest_rank,Ypred_rank,36,'filled')
+        h = lsline; h.Color = 'red'; h.LineWidth = 2; 
+        h.DisplayName = sprintf('R = %.2f', rank_corr);
         if mode == 1
-            title(sprintf('Subset %d',i))
+            title(sprintf('Subset %d',i),'FontWeight','bold')
         else
-            title('Overall scatter plot');
+            title('Overall scatter plot','FontWeight','bold');
         end
-        xlabel('Experimental')
-        ylabel('Predicted')
-        legend(h,'Location','northwest')   
+        xlabel('Experimental (Ranked Sorted)','FontWeight','bold','FontSize',16)
+        ylabel('Predicted (Ranked Sorted)','FontWeight','bold','FontSize',16)
+        legend(h,'Location','northwest')
+        ax = gca;
+        ax.FontSize = 12;
+        ax.FontWeight = 'bold';
+        ax.TitleFontSizeMultiplier = 1.5;
     end
 end

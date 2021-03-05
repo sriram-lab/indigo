@@ -69,7 +69,7 @@ function [testinteractions_scores, indigo_model, sigma_delta_scores] = ...
             end
             t1 = chemgen(:,ix1);
             t2 = sum(t1,2) * 2/length(ix1); % sigma scores
-            testdiffdat1xxz2(:,i) = [t2;[(sum(logical(t1')) ==1)]'];
+            testdiffdat1xxz2(:,i) = [t2; [(sum(logical(t1')) ==1)]'];
         end
     end
     
