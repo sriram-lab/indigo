@@ -4,7 +4,7 @@ function [row_loc, column_loc] = print_results(indigo_summary, indigo_data, para
     valmethod = indigo_summary.valmethod;
     scoring = indigo_summary.scoring;
     standardize = indigo_summary.standardize;
-    result_idx = indigo_data.Result_Index(strcmp(indigo_data.Filename, test_data));
+    result_idx = indigo_data.Number_Ref(strcmp(indigo_data.Filename, test_data));
     row_loc = result_idx + 3;   % based on dataset
 
     %% For R
