@@ -11,94 +11,6 @@ function [row_loc, column_loc] = print_results(indigo_summary, indigo_data, para
     if strcmp(parameter,'R')
         if strcmp(model_type, 'original_model') && strcmp(valmethod, 'independent') && strcmp(scoring, '')
             if strcmp(standardize, '')
-                column_loc = 'D';
-            else
-                column_loc = 'F';
-            end
-        elseif strcmp(model_type, 'original_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, '')
-            if strcmp(standardize, '')
-                column_loc = 'H';
-            else
-                column_loc = 'J';
-            end
-        elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'independent') && strcmp(scoring, '')
-            if strcmp(standardize, '')
-                column_loc = 'L';
-            else
-                column_loc = 'N';
-            end
-        elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, '')
-            if strcmp(standardize, '')
-                column_loc = 'P';
-            else
-                column_loc = 'R';
-            end
-        elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'independent') && strcmp(scoring, 'bliss')
-            if strcmp(standardize, '')
-                column_loc = 'T';
-            else
-                column_loc = 'V';
-            end
-        elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, 'bliss')
-            if strcmp(standardize, '')
-                column_loc = 'X';
-            else
-                column_loc = 'Z';
-            end    
-        elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'independent') && strcmp(scoring, 'loewe')
-            if strcmp(standardize, '')
-                column_loc = 'AB';
-            else
-                column_loc = 'AD';
-            end
-        elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, 'loewe')
-            if strcmp(standardize, '')
-                column_loc = 'AF';
-            else
-                column_loc = 'AH';
-            end
-        elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'independent') && strcmp(scoring, '')
-            if strcmp(standardize, '')
-                column_loc = 'AJ';
-            else
-                column_loc = 'AL';
-            end
-        elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, '')
-            if strcmp(standardize, '')
-                column_loc = 'AN';
-            else
-                column_loc = 'AP';
-            end
-        elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'independent') && strcmp(scoring, 'bliss')
-            if strcmp(standardize, '')
-                column_loc = 'AR';
-            else
-                column_loc = 'AT';   
-            end
-        elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, 'bliss')
-            if strcmp(standardize, '')
-                column_loc = 'AV';
-            else
-                column_loc = 'AX';   
-            end
-        elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'independent') && strcmp(scoring, 'loewe')
-            if strcmp(standardize, '')
-                column_loc = 'AZ';
-            else
-                column_loc = 'BB';   
-            end   
-       elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, 'loewe')
-            if strcmp(standardize, '')
-                column_loc = 'BD';
-            else
-                column_loc = 'BF';   
-            end     
-        end  
-
-    %% For P
-    elseif strcmp(parameter, 'P')    
-        if strcmp(model_type, 'original_model') && strcmp(valmethod, 'independent') && strcmp(scoring, '')
-            if strcmp(standardize, '')
                 column_loc = 'E';
             else
                 column_loc = 'G';
@@ -133,7 +45,6 @@ function [row_loc, column_loc] = print_results(indigo_summary, indigo_data, para
             else
                 column_loc = 'AA';
             end    
-
         elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'independent') && strcmp(scoring, 'loewe')
             if strcmp(standardize, '')
                 column_loc = 'AC';
@@ -183,91 +94,180 @@ function [row_loc, column_loc] = print_results(indigo_summary, indigo_data, para
                 column_loc = 'BG';   
             end     
         end  
+
+    %% For P
+    elseif strcmp(parameter, 'P')    
+        if strcmp(model_type, 'original_model') && strcmp(valmethod, 'independent') && strcmp(scoring, '')
+            if strcmp(standardize, '')
+                column_loc = 'F';
+            else
+                column_loc = 'H';
+            end
+        elseif strcmp(model_type, 'original_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, '')
+            if strcmp(standardize, '')
+                column_loc = 'J';
+            else
+                column_loc = 'L';
+            end
+        elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'independent') && strcmp(scoring, '')
+            if strcmp(standardize, '')
+                column_loc = 'N';
+            else
+                column_loc = 'P';
+            end
+        elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, '')
+            if strcmp(standardize, '')
+                column_loc = 'R';
+            else
+                column_loc = 'T';
+            end
+        elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'independent') && strcmp(scoring, 'bliss')
+            if strcmp(standardize, '')
+                column_loc = 'V';
+            else
+                column_loc = 'X';
+            end
+        elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, 'bliss')
+            if strcmp(standardize, '')
+                column_loc = 'Z';
+            else
+                column_loc = 'AB';
+            end    
+
+        elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'independent') && strcmp(scoring, 'loewe')
+            if strcmp(standardize, '')
+                column_loc = 'AD';
+            else
+                column_loc = 'AF';
+            end
+        elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, 'loewe')
+            if strcmp(standardize, '')
+                column_loc = 'AH';
+            else
+                column_loc = 'AJ';
+            end
+        elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'independent') && strcmp(scoring, '')
+            if strcmp(standardize, '')
+                column_loc = 'AL';
+            else
+                column_loc = 'AN';
+            end
+        elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, '')
+            if strcmp(standardize, '')
+                column_loc = 'AP';
+            else
+                column_loc = 'AR';
+            end
+        elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'independent') && strcmp(scoring, 'bliss')
+            if strcmp(standardize, '')
+                column_loc = 'AT';
+            else
+                column_loc = 'AV';   
+            end
+        elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, 'bliss')
+            if strcmp(standardize, '')
+                column_loc = 'AX';
+            else
+                column_loc = 'AZ';   
+            end
+        elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'independent') && strcmp(scoring, 'loewe')
+            if strcmp(standardize, '')
+                column_loc = 'BB';
+            else
+                column_loc = 'BD';   
+            end   
+       elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, 'loewe')
+            if strcmp(standardize, '')
+                column_loc = 'BF';
+            else
+                column_loc = 'BH';   
+            end     
+        end  
     % everything else
     else
         if strcmp(model_type, 'original_model') && strcmp(valmethod, 'independent') && strcmp(scoring, '')
             if strcmp(standardize, '')
-                column_loc = 'D';
-            else
                 column_loc = 'E';
+            else
+                column_loc = 'F';
             end
         elseif strcmp(model_type, 'original_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, '')
             if strcmp(standardize, '')
-                column_loc = 'F';
-            else
                 column_loc = 'G';
+            else
+                column_loc = 'H';
             end
         elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'independent') && strcmp(scoring, '')
             if strcmp(standardize, '')
-                column_loc = 'H';
-            else
                 column_loc = 'I';
+            else
+                column_loc = 'J';
             end
         elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, '')
             if strcmp(standardize, '')
-                column_loc = 'J';
-            else
                 column_loc = 'K';
+            else
+                column_loc = 'L';
             end
         elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'independent') && strcmp(scoring, 'bliss')
             if strcmp(standardize, '')
-                column_loc = 'L';
-            else
                 column_loc = 'M';
+            else
+                column_loc = 'N';
             end
         elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, 'bliss')
             if strcmp(standardize, '')
-                column_loc = 'N';
-            else
                 column_loc = 'O';
+            else
+                column_loc = 'P';
             end    
         elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'independent') && strcmp(scoring, 'loewe')
             if strcmp(standardize, '')
-                column_loc = 'P';
-            else
                 column_loc = 'Q';
+            else
+                column_loc = 'R';
             end
         elseif strcmp(model_type, 'ecoli_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, 'loewe')
             if strcmp(standardize, '')
-                column_loc = 'R';
-            else
                 column_loc = 'S';
+            else
+                column_loc = 'T';
             end
         elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'independent') && strcmp(scoring, '')
             if strcmp(standardize, '')
-                column_loc = 'T';
-            else
                 column_loc = 'U';
+            else
+                column_loc = 'V';
             end
         elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, '')
             if strcmp(standardize, '')
-                column_loc = 'V';
-            else
                 column_loc = 'W';
+            else
+                column_loc = 'X';
             end
         elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'independent') && strcmp(scoring, 'bliss')
             if strcmp(standardize, '')
-                column_loc = 'X';
+                column_loc = 'Y';
             else
-                column_loc = 'Y';   
+                column_loc = 'Z';   
             end
         elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, 'bliss')
             if strcmp(standardize, '')
-                column_loc = 'Z';
+                column_loc = 'AA';
             else
-                column_loc = 'AA';   
+                column_loc = 'AB';   
             end
         elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'independent') && strcmp(scoring, 'loewe')
             if strcmp(standardize, '')
-                column_loc = 'AB';
+                column_loc = 'AC';
             else
-                column_loc = 'AC';   
+                column_loc = 'AD';   
             end   
         elseif strcmp(model_type, 'mtb_model') && strcmp(valmethod, 'Kfold') && strcmp(scoring, 'loewe')
             if strcmp(standardize, '')
-                column_loc = 'AD';
+                column_loc = 'AE';
             else
-                column_loc = 'AE';   
+                column_loc = 'AF';   
             end     
         end  
     end  
