@@ -37,6 +37,7 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
             predicted_scores = indigo_summary.predicted_scores;
         end
         directory = 'v4_1';
+        all_overview_results_file = sprintf('results/%s/all_overview_results1.xlsx', directory);
     elseif prediction_idx == 2
         if isfield(indigo_summary,'predicted_scores_2')
             predicted_scores = indigo_summary.predicted_scores_2;
@@ -44,8 +45,8 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
             predicted_scores = indigo_summary.predicted_scores;
         end
         directory = 'v4_2';
+        all_overview_results_file = sprintf('results/%s/all_overview_results2.xlsx', directory);
     end
-
 
     %% Structure naming for output files and figures
     dataname = indigo_data.Data_Label_Full(strcmp(indigo_data.Filename,indigo_summary.test_data));
@@ -240,7 +241,6 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
         sprintf('B%d:L%d',result_index+1,result_index+1), 'WriteVariableNames',false)
     
     %% write data to one giant master file
-    all_overview_results_file = sprintf('results/%s/all_overview_results.xlsx', directory);
     % R
     [row_loc, column_loc] = print_results(indigo_summary, indigo_data, 'R');
     writematrix(getfield(overview,fields{5}),all_overview_results_file,'Sheet','R','Range', ...
