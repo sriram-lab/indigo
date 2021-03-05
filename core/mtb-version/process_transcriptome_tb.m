@@ -5,7 +5,7 @@ plist_bnums = expression_data_rowlabels;
 
 z = 1;
 for i = 1:length(conditions)
-    te = plist_bnums(phenotype_num(:,i) < -z);
+    te = plist_bnums(phenotype_num(:,i) < -z);  % downregulation
     cell_z1_list_t(1:length(te),i) = te;
     lte(i) = length(te);
 end
@@ -26,7 +26,7 @@ end
 %phenotype_data = nicholslistix_t;
 
 for i = 1:length(conditions)
-    te1 = plist_bnums(phenotype_num(:,i) > z);
+    te1 = plist_bnums(phenotype_num(:,i) > z);  %upregulation
     cell_z1_list_t1(1:length(te1),i) = te1;
     lte1(i) = length(te1);
 end

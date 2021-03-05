@@ -18,9 +18,9 @@ function results_file = save_indigo(indigo_summary, prediction_idx)
         1.  indigo_summary:      Model parameters and results 
     %}
     if prediction_idx == 1
-        directory = 'v3_1';
+        directory = 'v4_1';
     elseif prediction_idx == 2
-        directory = 'v3_2';
+        directory = 'v4_2';
     end
 
     filename = strcat(erase(indigo_summary.test_data,'.xlsx'),'_',indigo_summary.valmethod);

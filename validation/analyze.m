@@ -36,14 +36,14 @@ function [stats,averages,overview] = analyze(indigo_summary, result_index, indig
         else
             predicted_scores = indigo_summary.predicted_scores;
         end
-        directory = 'v3_1';
+        directory = 'v4_1';
     elseif prediction_idx == 2
         if isfield(indigo_summary,'predicted_scores_2')
             predicted_scores = indigo_summary.predicted_scores_2;
         else
             predicted_scores = indigo_summary.predicted_scores;
         end
-        directory = 'v3_2';
+        directory = 'v4_2';
     end
 
 
