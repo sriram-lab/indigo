@@ -67,7 +67,7 @@ function [test_interactions, testinteractions_scores, ...
         z = 2;
     end
     if ~exist('phenotype_data','var') || isempty(phenotype_data)
-        [phenotype_data, phenotype_labels, predictor_names, conditions] = process_chemgen(chemogenomics_filename,z);
+        [phenotype_data, phenotype_labels, conditions] = process_chemgen(chemogenomics_filename,z);
     end
 
     %% CONVERT AND MATCH INTERACTION LABELS WITH CHEMOGENOMIC DATA

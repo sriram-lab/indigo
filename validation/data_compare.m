@@ -1,4 +1,4 @@
-function shared_interactions = data_compare(files)
+function shared_interactions_table = data_compare(files)
 arguments
     files cell
 end
@@ -18,7 +18,7 @@ shared_interactions = cell(length(files));
 %it doesn't matter whether A or B is bigger file
 for i = 1:length(files)
     A_label = sprintf('%s score',names{i}); 
-    data = readcell(files{i});
+    data = readcell(files{i},'Sheet',2);
     A_scores = cell2mat(data(:,end));
     A_drugs = data(:,1:end-1);
     A_drugs = string(A_drugs); 
@@ -26,7 +26,7 @@ for i = 1:length(files)
         if j > i    %so that you don't get repeat comparisons
             %remove all rows that have more than 2 drugs
             B_label = sprintf('%s score',names{j});
-            data = readcell(files{j});
+            data = readcell(files{j},'Sheet',2);
             B_scores = cell2mat(data(:,end));
             B_drugs = data(:,1:end-1);
             B_drugs = string(B_drugs); 
@@ -68,4 +68,8 @@ P_values.Properties.RowNames = names;
 interaction_counts
 R_values
 P_values
+
+shared_interactions_table = cell2table(shared_interactions);
+shared_interactions_table.Properties.VariableNames = files;
+shared_interactions_table.Properties.RowNames = files;
 end
